@@ -40,4 +40,10 @@ final class ReflectionHelper
 		return substr($fullClassName, $pos + 1);
 	}
 
+	public static function setProperty(object $object, string $property, mixed $value): void
+	{
+		$reflection = new ReflectionProperty($object, $property);
+		$reflection->setValue($object, $value);
+	}
+
 }
