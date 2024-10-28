@@ -4,6 +4,7 @@ namespace Shredio\Core\Domain\Entity;
 
 use Cycle\Annotated\Annotation\Column;
 use Cycle\Annotated\Annotation\Table\Index;
+use Shredio\Core\Intl\Language;
 use Symfony\Component\Validator\Constraints\Email;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
@@ -31,6 +32,9 @@ abstract class CycleAccount
 
 	#[Column(type: 'string', nullable: true)]
 	protected ?string $avatar = null;
+
+	#[Column(type: 'string(2)', nullable: true)]
+	protected ?Language $language = null;
 
 	public function __construct(string $nick, string $email)
 	{
@@ -77,6 +81,16 @@ abstract class CycleAccount
 		$this->avatar = $avatar;
 
 		return $this;
+	}
+
+	public function getLanguage(): Language
+	{
+		return $this->language ?? Language::Czech;
+	}
+
+	public function setLanguage(?Language $language): void
+	{
+		$this->language = $language;
 	}
 
 }

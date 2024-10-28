@@ -22,6 +22,7 @@
 		"cycle/orm": "^2.9",
 		"symfony/validator": "^7.1",
 		"ramsey/uuid": "^4.7",
-		"paragonie/paseto": "^v3.2.3"
+		"paragonie/paseto": "^v3.2.3",
+		"cycle/annotated": "^4.2"
 	}
 }
