@@ -15,6 +15,8 @@ use Symfony\Component\Validator\Constraints\Regex;
 abstract class CycleAccount
 {
 
+	public const string Role = 'accounts';
+
 	#[Column(type: 'primary')]
 	protected int $id;
 
