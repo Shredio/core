@@ -30,6 +30,7 @@
 		"ramsey/uuid": "^4.7",
 		"paragonie/paseto": "^v3.2.3",
 		"cycle/annotated": "^4.2",
-		"phpunit/phpunit": "^11.4"
+		"phpunit/phpunit": "^11.4",
+		"nette/php-generator": "^4.1"
 	}
 }
