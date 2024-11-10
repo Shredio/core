@@ -37,9 +37,9 @@ final class NumberFormatter
 		return $formatted === '0.00' ? '0%' : $prefix . $formatted . '%';
 	}
 
-	public static function decimal(?float $price, string $otherwise = '-'): string
+	public static function decimal(?float $value, string $otherwise = '-'): string
 	{
-		return self::nullableDecimal($price) ?? $otherwise;
+		return self::nullableDecimal($value) ?? $otherwise;
 	}
 
 	public static function nullableDecimal(?float $value): ?string
