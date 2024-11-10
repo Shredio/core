@@ -4,6 +4,7 @@ namespace Shredio\Core\Format\Formatter;
 
 use Shredio\Core\Format\Attribute\DecimalFormat;
 use Shredio\Core\Format\Attribute\FormatAttribute;
+use Shredio\Core\Formatter\NumberFormatter;
 
 final readonly class DecimalFormatter implements ValueFormatter
 {
@@ -25,7 +26,11 @@ final readonly class DecimalFormatter implements ValueFormatter
 			$value = (float) $value;
 		}
 
-		return FormatterHelper::format($value, $attribute->decimals, $attribute->flexibleDecimals);
+		if ($attribute->decimals === null) {
+			return NumberFormatter::decimal($value);
+		} else {
+			return number_format($value, $attribute->decimals);
+		}
 	}
 
 }

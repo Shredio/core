@@ -25,7 +25,7 @@ final readonly class PercentFormatter implements ValueFormatter
 			$value = (float) $value;
 		}
 
-		return FormatterHelper::format($value * 100, $attribute->decimals, $attribute->flexibleDecimals) . '%';
+		return number_format($value * 100, $attribute->decimals) . '%';
 	}
 
 }

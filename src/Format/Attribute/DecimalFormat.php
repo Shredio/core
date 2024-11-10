@@ -10,8 +10,7 @@ final readonly class DecimalFormat extends FormatAttribute
 {
 
 	public function __construct(
-		public int $decimals = 2,
-		public bool $flexibleDecimals = true,
+		public ?int $decimals = null,
 		array $groups = [self::DefaultGroup],
 	)
 	{

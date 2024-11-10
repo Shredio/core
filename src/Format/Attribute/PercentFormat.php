@@ -11,7 +11,6 @@ final readonly class PercentFormat extends FormatAttribute
 
 	public function __construct(
 		public int $decimals = 2,
-		public bool $flexibleDecimals = true,
 		array $groups = [self::DefaultGroup],
 	)
 	{

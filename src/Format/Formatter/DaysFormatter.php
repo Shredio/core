@@ -23,7 +23,7 @@ final readonly class DaysFormatter implements ValueFormatter
 			$value = (float) $value;
 		}
 
-		return FormatterHelper::format($value) . ' ' . ($value === 1 ? 'day' : 'days');
+		return number_format($value) . ' ' . ($value === 1 ? 'day' : 'days');
 	}
 
 }

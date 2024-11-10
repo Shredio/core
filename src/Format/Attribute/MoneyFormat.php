@@ -13,9 +13,6 @@ final readonly class MoneyFormat extends FormatAttribute
 
 	public function __construct(
 		public string|false|null $currency = false,
-		public bool $suffixSpace = true,
-		public int $decimals = 2,
-		public bool $flexibleDecimals = true,
 		array $groups = [self::DefaultGroup],
 	)
 	{

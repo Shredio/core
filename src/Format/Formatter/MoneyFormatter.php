@@ -5,6 +5,7 @@ namespace Shredio\Core\Format\Formatter;
 use InvalidArgumentException;
 use Shredio\Core\Format\Attribute\FormatAttribute;
 use Shredio\Core\Format\Attribute\MoneyFormat;
+use Shredio\Core\Formatter\NumberFormatter;
 
 final readonly class MoneyFormatter implements ValueFormatter
 {
@@ -34,19 +35,7 @@ final readonly class MoneyFormatter implements ValueFormatter
 			$value = (float) $value;
 		}
 
-		$formatted = FormatterHelper::format($value, $attribute->decimals, $attribute->flexibleDecimals);
-
-		$suffix = $attribute->suffixSpace ? ' ' : '';
-
-		return match ($currency) {
-			'CZK' => $formatted . $suffix . 'Kč',
-			'EUR' => '€' . $formatted,
-			'USD' => '$' . $formatted,
-			'PLN' => $formatted . $suffix . 'zł',
-			'GBP' => '£' . $formatted,
-			'JPY' => '¥' . $formatted,
-			default => $formatted . $suffix . $currency,
-		};
+		return NumberFormatter::money($value, $currency);
 	}
 
 }
