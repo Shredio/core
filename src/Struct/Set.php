@@ -12,7 +12,7 @@ use IteratorAggregate;
 abstract class Set implements IteratorAggregate, Countable
 {
 
-	private static ?bool $usePecl = null;
+	use DataStructureExtensionDetection;
 
 	/**
 	 * @template TValue
@@ -81,10 +81,5 @@ abstract class Set implements IteratorAggregate, Countable
 	 * @return T[]
 	 */
 	abstract public function toArray(): array;
-
-	private static function usePecl(): bool
-	{
-		return self::$usePecl ??= extension_loaded('ds');
-	}
 
 }
