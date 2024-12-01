@@ -4,7 +4,7 @@ namespace Shredio\Core\Entity\Exception;
 
 use RuntimeException;
 use Shredio\Core\Exception\HttpException;
-use Throwable;
+use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 
 /**
  * Exception thrown when invalid data is detected.
@@ -12,10 +12,9 @@ use Throwable;
 final class InvalidDataException extends RuntimeException implements HttpException
 {
 
-	public function __construct(string $entity, ?Throwable $previous = null)
+	public function __construct(ExtraAttributesException $previous)
 	{
-
-		parent::__construct(sprintf('Invalid data for entity: %s', $entity), 400, $previous);
+		parent::__construct(sprintf('Extra values: %s', implode(', ', $previous->getExtraAttributes())), 400, $previous);
 	}
 
 	public function getHttpCode(): int
