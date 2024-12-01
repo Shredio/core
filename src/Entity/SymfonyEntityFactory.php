@@ -2,18 +2,21 @@
 
 namespace Shredio\Core\Entity;
 
+use InvalidArgumentException;
+use ReflectionClass;
+use Shredio\Core\Attribute\PreValidate;
+use Shredio\Core\Common\Reflection\ReflectionHelper;
 use Shredio\Core\Entity\Exception\InvalidDataException;
 use Shredio\Core\Entity\Exception\ValidationException;
 use Shredio\Core\Entity\Metadata\ContextExtractor;
 use Shredio\Core\Entity\Metadata\CreateContext;
 use Shredio\Core\Entity\Metadata\UpdateContext;
-use InvalidArgumentException;
 use Shredio\Core\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Serializer;
-use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 final readonly class SymfonyEntityFactory implements EntityFactory
@@ -38,6 +41,8 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 	 */
 	public function create(string $className, array $data): object
 	{
+		$this->preValidate($className, $data);
+
 		$context = $this->contextExtractor->extract($className, CreateContext::class);
 		$context['operation'] = 'create';
 
@@ -54,11 +59,36 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 	 */
 	public function update(object $entity, array $data): object
 	{
+		$this->preValidate($entity::class, $data);
+
 		$context = $this->contextExtractor->extract($entity::class, UpdateContext::class);
 		$context[AbstractNormalizer::OBJECT_TO_POPULATE] = $entity;
 		$context['operation'] = 'update';
 
 		return $this->customized($entity::class, $data, $context);
+	}
+
+	/**
+	 * @param class-string $className
+	 * @param mixed[] $data
+	 */
+	private function preValidate(string $className, array $data): void
+	{
+		$attribute = ReflectionHelper::getAttribute(new ReflectionClass($className), PreValidate::class);
+		
+		if (!$attribute) {
+			return;
+		}
+
+		$validator = $this->validator->startContext();
+
+		foreach ($data as $property => $value) {
+			$validator->atPath($property);
+
+			$validator->validatePropertyValue($className, $property, $value, $attribute->groups);
+		}
+
+		$this->tryToRaiseValidationException($validator->getViolations());
 	}
 
 	/**
@@ -87,7 +117,7 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 
 			throw new ValidationException($errors);
 		} catch (ExtraAttributesException $exception) { // @phpstan-ignore-line -- Exception is thrown
-			throw new InvalidDataException($className, $exception);
+			throw new InvalidDataException($exception);
 		}
 
 		if (!is_a($object, $className, true)) {
@@ -96,21 +126,23 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 			);
 		}
 
-		/** @var ConstraintViolationList $violationList */
-		$violationList = $this->validator->validate($object);
+		$this->tryToRaiseValidationException($this->validator->validate($object));
 
-		if ($violationList->count()) {
+		/** @var TEntity */
+		return $object;
+	}
+
+	private function tryToRaiseValidationException(ConstraintViolationListInterface $list): void
+	{
+		if ($list->count()) {
 			$errors = [];
 
-			foreach ($violationList as $violation) {
+			foreach ($list as $violation) {
 				$errors[$violation->getPropertyPath()][] = $violation->getMessage();
 			}
 
 			throw new ValidationException($errors);
 		}
-
-		/** @var TEntity */
-		return $object;
 	}
 
 }
