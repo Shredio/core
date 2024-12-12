@@ -15,6 +15,16 @@ final class ArrayMap extends Map
 	/** @var array<TKey, TValue> */
 	private array $map = [];
 
+	/**
+	 * @param iterable<array{TKey, TValue}> $values
+	 */
+	public function __construct(iterable $values = [])
+	{
+		foreach ($values as $value) {
+			$this->map[$value[0]] = $value[1];
+		}
+	}
+
 	public function allocate(int $capacity): void
 	{
 	}
@@ -56,6 +66,11 @@ final class ArrayMap extends Map
 	public function getValueOrNull(mixed $key): mixed
 	{
 		return $this->map[$key] ?? null;
+	}
+
+	public function isEmpty(): bool
+	{
+		return !$this->map;
 	}
 
 }

@@ -26,6 +26,20 @@ abstract class Map
 	}
 
 	/**
+	 * @template TV
+	 * @param iterable<array{string|int, TV}> $values
+	 * @return Map<string|int, TV>
+	 */
+	public static function createStringOrIntWith(iterable $values): Map
+	{
+		if (self::usePecl()) {
+			return new PeclMap($values);
+		}
+
+		return new ArrayMap($values);
+	}
+
+	/**
 	 * @return Map<string, mixed>
 	 */
 	public static function createString(): Map
@@ -36,6 +50,21 @@ abstract class Map
 
 		/** @var ArrayMap<string, mixed> */
 		return new ArrayMap();
+	}
+
+	/**
+	 * @template TV
+	 * @param iterable<array{string, TV}> $values
+	 * @return Map<string, TV>
+	 */
+	public static function createStringWith(iterable $values): Map
+	{
+		if (self::usePecl()) {
+			return new PeclMap($values);
+		}
+
+		/** @var ArrayMap<string, mixed> */
+		return new ArrayMap($values);
 	}
 
 	abstract public function allocate(int $capacity): void;
@@ -60,8 +89,20 @@ abstract class Map
 
 	/**
 	 * @param TKey $key
+	 * @param TValue $default
+	 * @return TValue
+	 */
+	public function getOr(mixed $key, mixed $default): mixed
+	{
+		return $this->getValueOrNull($key) ?? $default;
+	}
+
+	/**
+	 * @param TKey $key
 	 * @return TValue|null
 	 */
 	abstract public function getValueOrNull(mixed $key): mixed;
-	
+
+	abstract public function isEmpty(): bool;
+
 }

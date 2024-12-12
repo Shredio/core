@@ -16,9 +16,20 @@ final class PeclMap extends Map
 	/** @var DsMap<TKey, TValue> */
 	private DsMap $map;
 
-	public function __construct()
+	/**
+	 * @param iterable<array{TKey, TValue}> $values
+	 */
+	public function __construct(iterable $values = [])
 	{
 		$this->map = new DsMap();
+		
+		if (is_array($values)) {
+			$this->map->allocate(count($values));
+		}
+		
+		foreach ($values as $value) {
+			$this->map->put($value[0], $value[1]);
+		}
 	}
 
 	public function allocate(int $capacity): void
@@ -59,6 +70,11 @@ final class PeclMap extends Map
 	public function getValueOrNull(mixed $key): mixed
 	{
 		return $this->map->get($key, null);
+	}
+
+	public function isEmpty(): bool
+	{
+		return $this->map->isEmpty();
 	}
 
 }
