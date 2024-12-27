@@ -77,4 +77,9 @@ final class PeclMap extends Map
 		return $this->map->isEmpty();
 	}
 
+	public function clear(): void
+	{
+		$this->map->clear();
+	}
+
 }

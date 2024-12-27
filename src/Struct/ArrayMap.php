@@ -73,4 +73,9 @@ final class ArrayMap extends Map
 		return !$this->map;
 	}
 
+	public function clear(): void
+	{
+		$this->map = [];
+	}
+
 }

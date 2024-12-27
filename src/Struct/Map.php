@@ -105,4 +105,6 @@ abstract class Map
 
 	abstract public function isEmpty(): bool;
 
+	abstract public function clear(): void;
+
 }
