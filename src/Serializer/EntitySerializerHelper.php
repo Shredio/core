@@ -30,7 +30,8 @@ final class EntitySerializerHelper
 			return $value;
 		}
 
-		return $this->orm->getRepository($this->orm->resolveRole($entity))->findByPK($value);
+		/** @var T|null */
+		return $this->orm->getRepository($this->orm->resolveRole($entity))->findByPK($value); // @phpstan-ignore-line
 	}
 
 }

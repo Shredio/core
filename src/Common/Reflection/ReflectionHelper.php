@@ -25,8 +25,25 @@ final class ReflectionHelper
 	{
 		$attribute = $reflection->getAttributes($className, $instanceOf ? ReflectionAttribute::IS_INSTANCEOF : 0)[0] ?? null;
 
-		/** @var T */
+		/** @var T|null */
 		return $attribute?->newInstance();
+	}
+
+	/**
+	 * @template T of object
+	 * @param ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass<object> $reflection
+	 * @param class-string<T> $className
+	 * @return iterable<T>
+	 */
+	public static function getAttributes(
+		ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass $reflection,
+		string $className,
+		bool $instanceOf = false,
+	): iterable
+	{
+		foreach ($reflection->getAttributes($className, $instanceOf ? ReflectionAttribute::IS_INSTANCEOF : 0) as $attribute) {
+			yield $attribute->newInstance();
+		}
 	}
 
 	public static function getClassName(string $fullClassName): string
