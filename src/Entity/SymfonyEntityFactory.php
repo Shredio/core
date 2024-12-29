@@ -15,7 +15,7 @@ use Shredio\Core\Exception\HttpException;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
-use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
@@ -23,7 +23,7 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 {
 
 	public function __construct(
-		private Serializer $serializer,
+		private DenormalizerInterface $denormalizer,
 		private ValidatorInterface $validator,
 		private ContextExtractor $contextExtractor,
 		private bool $strict = true,
@@ -107,8 +107,8 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 		}
 
 		try {
-			$object = $this->serializer->denormalize($data, $className, context: $context);
-		} catch (MissingConstructorArgumentsException $exception) { // @phpstan-ignore-line -- Exception is thrown
+			$object = $this->denormalizer->denormalize($data, $className, context: $context);
+		} catch (MissingConstructorArgumentsException $exception) {
 			$errors = [];
 
 			foreach ($exception->getMissingConstructorArguments() as $id) {
@@ -116,13 +116,13 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 			}
 
 			throw new ValidationException($errors);
-		} catch (ExtraAttributesException $exception) { // @phpstan-ignore-line -- Exception is thrown
+		} catch (ExtraAttributesException $exception) {
 			throw new InvalidDataException($exception);
 		}
 
 		if (!is_a($object, $className, true)) {
 			throw new InvalidArgumentException(
-				sprintf('Entity must be an instance of %s, %s given.', $className, $object::class),
+				sprintf('Entity must be an instance of %s, %s given.', $className, get_debug_type($object)),
 			);
 		}
 
