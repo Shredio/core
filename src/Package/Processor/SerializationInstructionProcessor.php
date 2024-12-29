@@ -5,13 +5,13 @@ namespace Shredio\Core\Package\Processor;
 use Shredio\Core\Package\Instruction\PackingInstruction;
 use Shredio\Core\Package\Instruction\SerializationInstruction;
 use Shredio\Core\Package\ItemToPack;
-use Symfony\Component\Serializer\Serializer;
+use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 
 final class SerializationInstructionProcessor implements InstructionProcessor
 {
 
 	public function __construct(
-		private readonly Serializer $serializer,
+		private readonly NormalizerInterface $normalizer,
 	)
 	{
 	}
@@ -22,7 +22,7 @@ final class SerializationInstructionProcessor implements InstructionProcessor
 			return null;
 		}
 
-		return $item->withValue($this->serializer->normalize($item->value));
+		return $item->withValue($this->normalizer->normalize($item->value));
 	}
 
 }
