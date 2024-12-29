@@ -42,7 +42,7 @@ final readonly class DatabaseResult
 	}
 
 	/**
-	 * @return iterable<string>
+	 * @return iterable<mixed[]>
 	 */
 	public function yieldArray(): iterable
 	{
