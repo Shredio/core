@@ -3,7 +3,7 @@
 namespace Shredio\Core\Cache\Http;
 
 use DateTimeImmutable;
-use Symfony\Component\Clock\ClockInterface;
+use Psr\Clock\ClockInterface;
 
 interface HttpCacheSchedule
 {
