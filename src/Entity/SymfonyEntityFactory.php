@@ -144,7 +144,7 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 			$errors = new ErrorsPayload();
 
 			foreach ($list as $violation) {
-				$errors->addError(new FieldErrorPayload($violation->getMessage(), $violation->getPropertyPath()));
+				$errors->addError(new FieldErrorPayload((string) $violation->getMessage(), $violation->getPropertyPath()));
 			}
 
 			throw new ValidationException($errors);
