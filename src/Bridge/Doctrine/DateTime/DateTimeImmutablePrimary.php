@@ -6,9 +6,6 @@ use DateTimeImmutable;
 use DateTimeInterface;
 use Stringable;
 
-/**
- * @internal
- */
 final class DateTimeImmutablePrimary extends DateTimeImmutable implements Stringable
 {
 
