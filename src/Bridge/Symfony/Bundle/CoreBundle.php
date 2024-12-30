@@ -2,7 +2,6 @@
 
 namespace Shredio\Core\Bridge\Symfony\Bundle;
 
-use LogicException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
@@ -18,6 +17,7 @@ use Shredio\Core\Bridge\Symfony\Bundle\Compiler\PackagerCompilerPass;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyAdapterFactory;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyCacheFactory;
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
+use Shredio\Core\Bridge\Symfony\Extension\SymfonyExtensionHelper;
 use Shredio\Core\Bridge\Symfony\Http\PsrRequestResolver;
 use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
 use Shredio\Core\Bridge\Symfony\Reporter\SymfonyExceptionReporter;
@@ -40,6 +40,7 @@ use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Entity\Metadata\ContextExtractor;
 use Shredio\Core\Entity\SymfonyEntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
+use Shredio\Core\Environment\EnvVars;
 use Shredio\Core\Format\Formatter\BigMoneyFormatter;
 use Shredio\Core\Format\Formatter\DaysFormatter;
 use Shredio\Core\Format\Formatter\DecimalFormatter;
@@ -76,8 +77,6 @@ use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServiceConfigurator;
-use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\Serializer\Serializer;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
@@ -87,63 +86,33 @@ use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_it
 final class CoreBundle extends AbstractBundle
 {
 
+	use SymfonyExtensionHelper;
+
 	/**
 	 * @param mixed[] $config
 	 */
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		if (!isset($_ENV['CACHE_PREFIX'])) {
-			throw new LogicException('The CACHE_PREFIX environment variable must be set.');
-		}
-
-		if (!isset($_ENV['CACHE_DSN'])) {
-			throw new LogicException('The CACHE_DSN environment variable must be set.');
-		}
-
-		if (!isset($_ENV['PASETO_SECRET'])) {
-			throw new LogicException('The PASETO_SECRET environment variable must be set.');
-		}
+		EnvVars::require('APP_ENV', 'The environment the application is running in.');
+		EnvVars::require('APP_RUNTIME_ENV', 'The runtime environment the application is running in.');
+		EnvVars::require('CACHE_PREFIX', 'Prefix for cache keys used in key-value stores. e.g. myapp:');
+		EnvVars::require('CACHE_DSN', 'DSN for the default cache storage. e.g. redis://redis:6379');
+		EnvVars::require('AUTH_PASETO_SECRET', 'Secret key for PASETO tokens.');
 
 		$builder->prependExtensionConfig('framework', [
 			'cache' => [
-				'prefix_seed' => $_ENV['CACHE_PREFIX'],
+				'prefix_seed' => EnvVars::getString('CACHE_PREFIX'),
 			],
 		]);
 
-		$services = $container->services();
-
-		if ($_ENV['APP_ENV'] === 'test') {
+		if ($container->env() === 'test') {
 			$this->loadTest($container, $builder);
 		}
 
-		$services->set(RestLoader::class)
-			->autowire()
-			->autoconfigure()
-			->tag('routing.loader');
-
-		$services->set(RestControllerLocator::class)
-			->autowire();
-
-		$this->addService($services, ControllerMetadataFactory::class, DefaultControllerMetadataFactory::class);
-		$this->addService($services, EndpointMetadataFactory::class, DefaultEndpointMetadataFactory::class);
-
-		$services->set('directories')
-			->autowire()
-			->synthetic()
-			->alias(Directories::class, 'directories');
-
-		$services->set(SymfonyRestOperationsFactory::class)
-			->autowire()
-			->alias(RestOperationsFactory::class, SymfonyRestOperationsFactory::class);
-
-		$services->set(SymfonyEntityFactory::class)
-			->autowire()
-			->alias(EntityFactory::class, SymfonyEntityFactory::class);
-
-		$services->set(ContextExtractor::class);
-
+		$this->loadRestRouter($container, $builder);
 		$this->loadBasics($container, $builder);
 		$this->loadCache($container, $builder, $config['cache'] ?? []);
+		$this->loadAppCache($container, $builder);
 		$this->loadSecurity($container, $builder);
 		$this->loadPsr7($container, $builder);
 		$this->loadDoctrine($container, $builder);
@@ -157,8 +126,29 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		$this->addService($services, AppEnvironment::class, SymfonyAppEnvironment::class);
-		$this->addService($services, ExceptionReporter::class, SymfonyExceptionReporter::class);
+		$this->addInterfaceService($services, AppEnvironment::class, SymfonyAppEnvironment::class);
+		$this->addInterfaceService($services, ExceptionReporter::class, SymfonyExceptionReporter::class);
+
+		$services->set('directories')
+			->autowire()
+			->synthetic()
+			->alias(Directories::class, 'directories');
+	}
+
+	private function loadRestRouter(ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		$services = $container->services();
+
+		$services->set(RestLoader::class)
+			->autowire()
+			->autoconfigure()
+			->tag('routing.loader');
+
+		$services->set(RestControllerLocator::class)->autowire();
+
+		$this->addInterfaceService($services, ControllerMetadataFactory::class, DefaultControllerMetadataFactory::class);
+		$this->addInterfaceService($services, EndpointMetadataFactory::class, DefaultEndpointMetadataFactory::class);
+		$this->addInterfaceService($services, RestOperationsFactory::class, SymfonyRestOperationsFactory::class);
 	}
 
 	public function build(ContainerBuilder $container): void
@@ -205,15 +195,9 @@ final class CoreBundle extends AbstractBundle
 			->autoconfigure()
 			->autowire();
 
-		$this->loadAppCache($services);
-
 		// Create CacheFactory
 		$resolveAlias = static function (string $name): string {
-			if ($_ENV['CACHE_PREFIX']) {
-				$name = $_ENV['CACHE_PREFIX'] . $name;
-			}
-
-			return $name;
+			return EnvVars::getString('CACHE_PREFIX') . $name;
 		};
 
 		$aliases = $config['aliases'] ?? [];
@@ -248,94 +232,79 @@ final class CoreBundle extends AbstractBundle
 		return new PrefixCache(new Psr16Cache($cache), $prefix);
 	}
 
-	private function loadAppCache(ServicesConfigurator $services): void
+	private function loadAppCache(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
+		$services = $container->services();
 		$services->set('cache.app', AdapterInterface::class)
+			->autowire()
+			->autoconfigure()
 			->factory([SymfonyAdapterFactory::class, 'create'])
 			->args([$_ENV['CACHE_DSN'], param('kernel.cache_dir')])
-			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'));
+			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'))
+			->arg('$workerMode', param('env(APP_WORKER_MODE)'));
 	}
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
-			->autowire()
-			->autoconfigure();
-
-		$services->set(PasetoProvider::class)
-			->arg('$secret', $_ENV['PASETO_SECRET'])
-			->alias(TokenProvider::class, PasetoProvider::class);
 
 		$services->set('core.authenticator', PasetoAuthenticator::class)
+			->autowire()
+			->autoconfigure()
 			->arg('$idKey', 'val');
 
-		$this->addService($services, UserProvider::class, SymfonyUserProvider::class);
+		$this->addInterfaceService($services, UserProvider::class, SymfonyUserProvider::class);
+		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
+			->arg('$secret', param('%env(AUTH_PASETO_SECRET)'));
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
-			->autowire()
-			->autoconfigure();
 
 		$services->set(PsrRequestResolver::class)
+			->autowire()
 			->autoconfigure()
 			->tag('controller.argument_value_resolver', ['priority' => -100]);
 		$services->set(PsrResponseListener::class)
+			->autowire()
 			->autoconfigure();
 
-		$this->addService($services, HttpFoundationFactoryInterface::class, HttpFoundationFactory::class);
-		$this->addService($services, HttpMessageFactoryInterface::class, PsrHttpFactory::class);
-	}
-
-	private function addService(ServicesConfigurator $services, string $interface, string $class, bool $configure = false): ServiceConfigurator
-	{
-		$service = $services->set($class);
-		$service->autowire()
-			->autoconfigure($configure)
-			->alias($interface, $class);
-
-		return $service;
+		$this->addInterfaceService($services, HttpFoundationFactoryInterface::class, HttpFoundationFactory::class);
+		$this->addInterfaceService($services, HttpMessageFactoryInterface::class, PsrHttpFactory::class);
 	}
 
 	private function loadDoctrine(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
-			->autowire()
-			->autoconfigure();
 
-		$services->set(DoctrineEntityRapidOperationFactory::class)
-			->alias(EntityRapidOperationFactory::class, DoctrineEntityRapidOperationFactory::class);
-		$services->set(DeferredTrackingPolicy::class);
-		$services->set(DoctrineRepositoryServices::class);
-		$services->set(DoctrineRepositoryHelper::class);
+		$services->set(DeferredTrackingPolicy::class)->autowire()->autoconfigure();
+		$services->set(DoctrineRepositoryServices::class)->autowire();
+		$services->set(DoctrineRepositoryHelper::class)->autowire();
+		$services->set(EntityManagerRegistry::class)->autowire();
+		$services->set(ContextExtractor::class)->autowire();
 
-		$this->addService($services, QueryBuilderFactory::class, DefaultQueryBuilderFactory::class);
-		$this->addService($services, PaginationFactory::class, DoctrinePaginationFactory::class);
-
-		$services->set(EntityManagerRegistry::class);
+		$this->addInterfaceService($services, EntityRapidOperationFactory::class, DoctrineEntityRapidOperationFactory::class);
+		$this->addInterfaceService($services, QueryBuilderFactory::class, DefaultQueryBuilderFactory::class);
+		$this->addInterfaceService($services, PaginationFactory::class, DoctrinePaginationFactory::class);
+		$this->addInterfaceService($services, EntityFactory::class, SymfonyEntityFactory::class);
 	}
 
 	private function loadPackager(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
-			->autowire()
-			->autoconfigure();
 
 		$services->set('packager', Packager::class)
+			->autowire()
 			->alias(Packager::class, 'packager')
 			->public();
 
 		if (class_exists(Serializer::class)) {
-			$this->addService($services, InstructionProcessor::class, SerializationInstructionProcessor::class)
+			$this->addInterfaceService($services, InstructionProcessor::class, SerializationInstructionProcessor::class)
 				->tag('packager.processor');
 		}
 
-		$this->addService($services, InstructionProcessor::class, FormattingInstructionProcessor::class)
+		$this->addInterfaceService($services, InstructionProcessor::class, FormattingInstructionProcessor::class)
 			->tag('packager.processor');
 
 		$formatters = [
@@ -368,27 +337,26 @@ final class CoreBundle extends AbstractBundle
 	private function loadMiddlewares(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
+
+		$services->set(PackagingMiddleware::class)
 			->autowire()
 			->autoconfigure();
-
-		$services->set(PackagingMiddleware::class);
 	}
 
 	private function loadSerializer(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-		$services->defaults()
-			->autowire()
-			->autoconfigure();
 
 		$services->set(SymbolNormalizer::class)
+			->autowire()
 			->tag('serializer.normalizer');
 
 		$services->set(AccountIdNormalizer::class)
+			->autowire()
 			->tag('serializer.normalizer');
 
 		$services->set(KeepObjectNormalizer::class)
+			->autowire()
 			->tag('serializer.normalizer');
 	}
 

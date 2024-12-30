@@ -31,4 +31,11 @@ final class EnvVars
 		return $_ENV[$name];
 	}
 
+	public static function require(string $name, string $description): void
+	{
+		if (!isset($_ENV[$name])) {
+			throw new RuntimeException(sprintf('Missing required environment variable %s: %s', $name, $description));
+		}
+	}
+
 }
