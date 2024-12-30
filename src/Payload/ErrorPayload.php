@@ -2,12 +2,7 @@
 
 namespace Shredio\Core\Payload;
 
-interface ErrorPayload
+interface ErrorPayload extends WarningPayload
 {
-
-	/**
-	 * @return mixed[]
-	 */
-	public function toArray(bool $debugMode = false): array;
 
 }

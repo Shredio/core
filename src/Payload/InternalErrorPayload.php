@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Payload;
 
+use Symfony\Contracts\Translation\TranslatorInterface;
 use Throwable;
 
 final class InternalErrorPayload implements ErrorPayload
@@ -43,9 +44,9 @@ final class InternalErrorPayload implements ErrorPayload
 	/**
 	 * @return mixed[]
 	 */
-	public function toArray(bool $debugMode = false): array
+	public function toArray(TranslatorInterface $translator, bool $debugMode = false): array
 	{
-		$payload = $this->original?->toArray($debugMode) ?? [];
+		$payload = $this->original?->toArray($translator, $debugMode) ?? [];
 
 		if (!$debugMode) {
 			return $payload;

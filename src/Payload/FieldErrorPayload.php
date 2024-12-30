@@ -2,26 +2,12 @@
 
 namespace Shredio\Core\Payload;
 
-final class FieldErrorPayload implements ErrorPayload
+readonly class FieldErrorPayload extends FieldWarningPayload implements ErrorPayload
 {
 
-	public function __construct(
-		public readonly string $message,
-		public readonly string $field,
-	)
+	protected function getType(): string
 	{
-	}
-
-	/**
-	 * @param bool $debugMode
-	 * @return mixed[]
-	 */
-	public function toArray(bool $debugMode = false): array
-	{
-		return [
-			'message' => $this->message,
-			'field' => $this->field,
-		];
+		return 'error';
 	}
 
 }

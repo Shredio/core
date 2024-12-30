@@ -57,6 +57,7 @@ use Shredio\Core\Package\Processor\InstructionProcessor;
 use Shredio\Core\Package\Processor\SerializationInstructionProcessor;
 use Shredio\Core\Pagination\PaginationFactory;
 use Shredio\Core\Path\Directories;
+use Shredio\Core\Payload\ErrorsPayloadProcessor;
 use Shredio\Core\Reporter\ExceptionReporter;
 use Shredio\Core\Rest\Locator\RestControllerLocator;
 use Shredio\Core\Rest\Metadata\ControllerMetadataFactory;
@@ -133,6 +134,8 @@ final class CoreBundle extends AbstractBundle
 		$services->set(ErrorListener::class)
 			->autowire()
 			->autoconfigure();
+
+		$services->set(ErrorsPayloadProcessor::class)->autowire();
 
 		$services->set('directories')
 			->autowire()

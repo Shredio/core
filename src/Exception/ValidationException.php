@@ -2,11 +2,11 @@
 
 namespace Shredio\Core\Exception;
 
-use RuntimeException;
+use Exception;
 use Shredio\Core\Payload\ErrorsPayload;
 use Throwable;
 
-final class ValidationException extends RuntimeException implements HttpException
+final class ValidationException extends Exception implements HttpException
 {
 
 	public function __construct(

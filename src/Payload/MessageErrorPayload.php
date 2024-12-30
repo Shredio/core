@@ -2,20 +2,12 @@
 
 namespace Shredio\Core\Payload;
 
-final readonly class MessageErrorPayload implements ErrorPayload
+final readonly class MessageErrorPayload extends MessageWarningPayload implements ErrorPayload
 {
 
-	public function __construct(
-		private string $message,
-	)
+	protected function getType(): string
 	{
-	}
-
-	public function toArray(bool $debugMode = false): array
-	{
-		return [
-			'message' => $this->message,
-		];
+		return 'error';
 	}
 
 }

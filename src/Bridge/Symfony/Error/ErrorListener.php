@@ -4,6 +4,7 @@ namespace Shredio\Core\Bridge\Symfony\Error;
 
 use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Exception\HttpException;
+use Shredio\Core\Payload\ErrorsPayloadProcessor;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
@@ -18,6 +19,7 @@ final readonly class ErrorListener
 
 	public function __construct(
 		private AppEnvironment $appEnv,
+		private ErrorsPayloadProcessor $errorsPayloadProcessor,
 	)
 	{
 	}
@@ -44,7 +46,7 @@ final readonly class ErrorListener
 
 	private function createResponseForHttpException(HttpException $exception): Response
 	{
-		$payload = $exception->getPayload()->toArray($this->includeInternalMessage());
+		$payload = $this->errorsPayloadProcessor->process($exception->getPayload());
 
 		if (!$payload) {
 			return new Response('', $exception->getHttpCode());
