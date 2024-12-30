@@ -17,6 +17,7 @@ use Shredio\Core\Bridge\Symfony\Bundle\Compiler\PackagerCompilerPass;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyAdapterFactory;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyCacheFactory;
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
+use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Shredio\Core\Bridge\Symfony\Extension\SymfonyExtensionHelper;
 use Shredio\Core\Bridge\Symfony\Http\PsrRequestResolver;
 use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
@@ -128,6 +129,10 @@ final class CoreBundle extends AbstractBundle
 
 		$this->addInterfaceService($services, AppEnvironment::class, SymfonyAppEnvironment::class);
 		$this->addInterfaceService($services, ExceptionReporter::class, SymfonyExceptionReporter::class);
+
+		$services->set(ErrorListener::class)
+			->autowire()
+			->autoconfigure();
 
 		$services->set('directories')
 			->autowire()

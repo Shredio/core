@@ -6,12 +6,15 @@ use InvalidArgumentException;
 use ReflectionClass;
 use Shredio\Core\Attribute\PreValidate;
 use Shredio\Core\Common\Reflection\ReflectionHelper;
-use Shredio\Core\Entity\Exception\InvalidDataException;
-use Shredio\Core\Entity\Exception\ValidationException;
 use Shredio\Core\Entity\Metadata\ContextExtractor;
 use Shredio\Core\Entity\Metadata\CreateContext;
 use Shredio\Core\Entity\Metadata\UpdateContext;
 use Shredio\Core\Exception\HttpException;
+use Shredio\Core\Exception\InvalidDataException;
+use Shredio\Core\Exception\ValidationException;
+use Shredio\Core\Payload\ErrorsPayload;
+use Shredio\Core\Payload\FieldErrorPayload;
+use Shredio\Core\Payload\InternalErrorPayload;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
@@ -109,10 +112,13 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 		try {
 			$object = $this->denormalizer->denormalize($data, $className, context: $context);
 		} catch (MissingConstructorArgumentsException $exception) {
-			$errors = [];
+			$errors = new ErrorsPayload();
 
 			foreach ($exception->getMissingConstructorArguments() as $id) {
-				$errors[$id] = ['This field is required.'];
+				$errors->addError(InternalErrorPayload::fromThrowable(
+					$exception,
+					new FieldErrorPayload('This field is required.', $id),
+				));
 			}
 
 			throw new ValidationException($errors);
@@ -135,10 +141,10 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 	private function tryToRaiseValidationException(ConstraintViolationListInterface $list): void
 	{
 		if ($list->count()) {
-			$errors = [];
+			$errors = new ErrorsPayload();
 
 			foreach ($list as $violation) {
-				$errors[$violation->getPropertyPath()][] = $violation->getMessage();
+				$errors->addError(new FieldErrorPayload($violation->getMessage(), $violation->getPropertyPath()));
 			}
 
 			throw new ValidationException($errors);

@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Exception;
 
+use Shredio\Core\Payload\ErrorsPayload;
 use Throwable;
 
 interface HttpException extends Throwable
@@ -9,9 +10,6 @@ interface HttpException extends Throwable
 
 	public function getHttpCode(): int;
 
-	/**
-	 * @return mixed[]|null
-	 */
-	public function getPayload(): ?array;
+	public function getPayload(): ErrorsPayload;
 
 }
