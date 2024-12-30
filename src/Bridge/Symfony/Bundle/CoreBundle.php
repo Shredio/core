@@ -248,8 +248,7 @@ final class CoreBundle extends AbstractBundle
 			->autoconfigure()
 			->factory([SymfonyAdapterFactory::class, 'create'])
 			->args([param('env(string:CACHE_DSN)'), param('kernel.cache_dir')])
-			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'))
-			->arg('$workerMode', param('env(bool:APP_WORKER_MODE)'));
+			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'));
 	}
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void

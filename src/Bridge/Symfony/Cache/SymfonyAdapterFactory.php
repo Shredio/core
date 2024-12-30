@@ -17,7 +17,6 @@ final class SymfonyAdapterFactory
 		?string $cacheDir = null,
 		?string $namespace = null,
 		?MarshallerInterface $marshaller = null,
-		bool $workerMode = false,
 	): AdapterInterface
 	{
 		if (str_starts_with($dsn, 'filesystem:')) {
@@ -42,7 +41,7 @@ final class SymfonyAdapterFactory
 
 		if (str_starts_with($dsn, 'redis:') || str_starts_with($dsn, 'rediss:')) {
 			return new RedisAdapter(RedisAdapter::createConnection($dsn, [
-				'lazy' => !$workerMode,
+				'lazy' => true,
 			]), marshaller: $marshaller);
 		}
 
