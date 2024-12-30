@@ -239,9 +239,9 @@ final class CoreBundle extends AbstractBundle
 			->autowire()
 			->autoconfigure()
 			->factory([SymfonyAdapterFactory::class, 'create'])
-			->args([$_ENV['CACHE_DSN'], param('kernel.cache_dir')])
+			->args([param('env(string:CACHE_DSN)'), param('kernel.cache_dir')])
 			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'))
-			->arg('$workerMode', param('env(APP_WORKER_MODE)'));
+			->arg('$workerMode', param('env(bool:APP_WORKER_MODE)'));
 	}
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -255,7 +255,7 @@ final class CoreBundle extends AbstractBundle
 
 		$this->addInterfaceService($services, UserProvider::class, SymfonyUserProvider::class);
 		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
-			->arg('$secret', param('%env(AUTH_PASETO_SECRET)'));
+			->arg('$secret', param('%env(string:AUTH_PASETO_SECRET)'));
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
