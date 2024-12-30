@@ -2,8 +2,11 @@
 
 namespace Shredio\Core\Rest\Test;
 
+use PHPUnit\Framework\Assert;
 use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\ResponseInterface;
+use Shredio\Core\Rest\Test\Assert\JsonArrayAssertions;
+use Shredio\Core\Rest\Test\Assert\JsonMultiArrayAssertions;
 use Shredio\Core\Test\Assert\HttpExpectation;
 
 final class TestResponse
@@ -109,6 +112,11 @@ final class TestResponse
 		);
 
 		return $this;
+	}
+
+	public function assertBadRequest(): self
+	{
+		return $this->assertStatus(400);
 	}
 
 	public function assertNotFound(): self
@@ -267,6 +275,26 @@ final class TestResponse
 		}
 
 		return $result;
+	}
+
+	public function createSingleArrayAssertions(): JsonArrayAssertions
+	{
+		$this->assertHasHeader('Content-Type', 'application/json');
+		Assert::assertIsArray($body = $this->getJsonParsedBody());
+
+		return new JsonArrayAssertions($body);
+	}
+
+	public function createMultiArrayAssertions(): JsonMultiArrayAssertions
+	{
+		$this->assertHasHeader('Content-Type', 'application/json');
+		Assert::assertIsArray($body = $this->getJsonParsedBody());
+
+		foreach ($body as $item) {
+			Assert::assertIsArray($item);
+		}
+
+		return new JsonMultiArrayAssertions($body);
 	}
 
 	public function expect(HttpExpectation $expectHttp): void
