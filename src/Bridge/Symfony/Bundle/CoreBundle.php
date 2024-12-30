@@ -255,7 +255,7 @@ final class CoreBundle extends AbstractBundle
 
 		$this->addInterfaceService($services, UserProvider::class, SymfonyUserProvider::class);
 		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
-			->arg('$secret', param('%env(string:AUTH_PASETO_SECRET)'));
+			->arg('$secret', param('env(string:AUTH_PASETO_SECRET)'));
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
