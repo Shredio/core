@@ -33,6 +33,20 @@ final readonly class DatabaseFieldResult
 	}
 
 	/**
+	 * @return mixed[]
+	 */
+	public function toScalarArray(): array
+	{
+		$values = [];
+
+		foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_SCALAR) as $item) {
+			$values[] = $item[$this->field];
+		}
+
+		return $values;
+	}
+
+	/**
 	 * @return Set<string>
 	 */
 	public function createStringSet(): Set
