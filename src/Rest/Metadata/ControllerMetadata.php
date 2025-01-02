@@ -10,6 +10,8 @@ use InvalidArgumentException;
 final readonly class ControllerMetadata
 {
 
+	public RoutePattern $pattern;
+
 	/**
 	 * @param class-string $className
 	 * @param array<string, EndpointMetadata> $endpoints
@@ -18,12 +20,18 @@ final readonly class ControllerMetadata
 	public function __construct(
 		public string $className,
 		public string $name,
-		public RoutePattern $pattern,
+		RoutePattern $pattern,
 		public Controller $attribute,
 		public array $endpoints,
 		public array $parameters,
+		public string $basePath = '/',
 	)
 	{
+		if ($this->basePath !== '/') {
+			$this->pattern = $pattern->withPrependedPattern($this->basePath);
+		} else {
+			$this->pattern = $pattern;
+		}
 	}
 
 	public function getRouteName(EndpointMetadata $endpoint, string $separator = '.'): string

@@ -62,7 +62,13 @@ final readonly class EndpointMetadata
 				);
 			}
 
-			return new RoutePattern($route);
+			$pattern = new RoutePattern($route);
+
+			if ($controllerMetadata->basePath !== '/') {
+				$pattern = $pattern->withPrependedPattern($controllerMetadata->basePath);
+			}
+
+			return $pattern;
 		}
 
 		$pattern = $controllerMetadata->pattern;
