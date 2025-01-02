@@ -1,3 +1,4 @@
 /bin export-ignore
 /.git* export-ignore
 /tests export-ignore
+/phpstan.neon export-ignore
