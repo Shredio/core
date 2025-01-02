@@ -2,9 +2,9 @@
 
 namespace Shredio\Core\Format\Formatter\Service;
 
-use DateTimeImmutable;
 use DateTimeInterface;
 use Spiral\Core\Attribute\Singleton;
+use Symfony\Component\Clock\DatePoint;
 
 #[Singleton]
 final class TimeAgoInDays
@@ -12,7 +12,7 @@ final class TimeAgoInDays
 
 	public function format(DateTimeInterface $date, ?DateTimeInterface $reference = null): string
 	{
-		$reference ??= new DateTimeImmutable();
+		$reference ??= new DatePoint();
 
 		$interval = $reference->diff($date);
 		$days = (int) $interval->format('%r%a');

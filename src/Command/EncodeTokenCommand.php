@@ -3,10 +3,10 @@
 namespace Shredio\Core\Command;
 
 use DateMalformedStringException;
-use DateTimeImmutable;
 use DateTimeInterface;
 use Nette\Neon\Neon;
 use Shredio\Core\Security\TokenProvider;
+use Symfony\Component\Clock\DatePoint;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
@@ -60,11 +60,11 @@ final class EncodeTokenCommand extends Command
 		$ttl = $input->getOption('ttl');
 
 		if (is_numeric($ttl)) {
-			return (new DateTimeImmutable())->modify(sprintf('+%d seconds', $ttl));
+			return (new DatePoint())->modify(sprintf('+%d seconds', $ttl));
 		}
 
 		if (is_string($ttl)) {
-			return new DateTimeImmutable($ttl);
+			return new DatePoint($ttl);
 		}
 
 		return null;

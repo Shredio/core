@@ -2,9 +2,9 @@
 
 namespace Shredio\Core\Security;
 
-use DateTimeImmutable;
 use Shredio\Core\Intl\Language;
 use Shredio\Core\Security\Token\Token;
+use Symfony\Component\Clock\DatePoint;
 
 final readonly class AuthTokenProvider
 {
@@ -23,7 +23,7 @@ final readonly class AuthTokenProvider
 
 	public function create(string|int $id): Token
 	{
-		return $this->tokenProvider->create(['id' => $id], new DateTimeImmutable($this->expiration));
+		return $this->tokenProvider->create(['id' => $id], new DatePoint($this->expiration));
 	}
 
 	/**
@@ -33,7 +33,7 @@ final readonly class AuthTokenProvider
 	{
 		return $this->tokenProvider->create(
 			['id' => $id, 'roles' => $roles, 'language' => $language->value],
-			new DateTimeImmutable($this->expiration),
+			new DatePoint($this->expiration),
 			['aud' => 'api'],
 		);
 	}

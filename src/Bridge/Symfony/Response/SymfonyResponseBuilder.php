@@ -8,6 +8,7 @@ use DateTimeInterface;
 use DateTimeZone;
 use Nette\Utils\Json;
 use Psr\Http\Message\UriInterface;
+use Symfony\Component\Clock\DatePoint;
 use Symfony\Component\HttpFoundation\Response;
 
 final class SymfonyResponseBuilder
@@ -91,7 +92,7 @@ final class SymfonyResponseBuilder
 	{
 		if ($duration) {
 			if ($duration instanceof DateInterval) {
-				$duration = (new DateTimeImmutable())->add($duration);
+				$duration = (new DatePoint())->add($duration);
 			}
 
 			$duration = $duration->setTimezone(new DateTimeZone('GMT'));

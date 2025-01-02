@@ -2,10 +2,10 @@
 
 namespace Shredio\Core\Format\Formatter;
 
-use DateTimeImmutable;
 use Shredio\Core\Format\Attribute\FormatAttribute;
 use Shredio\Core\Format\Attribute\TimeAgoInDaysFormat;
 use Shredio\Core\Format\Formatter\Service\TimeAgoInDays;
+use Symfony\Component\Clock\DatePoint;
 use Throwable;
 
 final readonly class TimeAgoInDaysFormatter implements ValueFormatter
@@ -31,7 +31,7 @@ final readonly class TimeAgoInDaysFormatter implements ValueFormatter
 	{
 		if (is_string($value)) {
 			try {
-				$date = new DateTimeImmutable($value);
+				$date = new DatePoint($value);
 			} catch (Throwable) {
 				return $value;
 			}
