@@ -78,10 +78,17 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 				$cookieJar->set(new Cookie($cookie->name, $cookie->value));
 			}
 
+			if ($request->query) {
+				if (str_contains($url, '?')) {
+					$url .= '&' . http_build_query($request->query);
+				} else {
+					$url .= '?' . http_build_query($request->query);
+				}
+			}
+
 			$client->request(
 				$request->method,
 				$url,
-				$request->query,
 				server: $server,
 				content: $request->body?->getContents(),
 				changeHistory: false,
