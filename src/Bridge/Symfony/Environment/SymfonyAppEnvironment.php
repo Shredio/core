@@ -51,11 +51,6 @@ final readonly class SymfonyAppEnvironment implements AppEnvironment
 		return isset(self::ProductionEnvironments[$this->runtimeEnvironment]);
 	}
 
-	public function isRuntimeStaging(): bool
-	{
-		return isset(self::StagingEnvironments[$this->runtimeEnvironment]);
-	}
-
 	public function isRuntimeLocal(): bool
 	{
 		return isset(self::LocalEnvironment[$this->runtimeEnvironment]);
