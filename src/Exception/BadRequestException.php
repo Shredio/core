@@ -6,6 +6,7 @@ use RuntimeException;
 use Shredio\Core\Payload\ErrorsPayload;
 use Shredio\Core\Payload\InternalErrorPayload;
 use Shredio\Core\Payload\MessageErrorPayload;
+use Throwable;
 
 final class BadRequestException extends RuntimeException implements HttpException
 {
@@ -13,9 +14,10 @@ final class BadRequestException extends RuntimeException implements HttpExceptio
 	public function __construct(
 		string $message,
 		private readonly bool $safe = false,
+		?Throwable $previous = null,
 	)
 	{
-		parent::__construct($message);
+		parent::__construct($message, previous: $previous);
 	}
 
 	public function getHttpCode(): int
