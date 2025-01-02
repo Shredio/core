@@ -14,6 +14,7 @@ use Shredio\Core\Security\InMemoryUser;
 use Shredio\Core\Test\Assert\HttpExpectation;
 use Shredio\Core\Test\Authentication\Actor;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
+use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 
 trait HttpRestEnvironment // @phpstan-ignore-line
@@ -68,6 +69,13 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 
 			foreach ($request->headers as $name => $values) {
 				$server['HTTP_' . strtoupper(str_replace('-', '_', $name))] = implode(', ', $values);
+			}
+
+			$cookieJar = $client->getCookieJar();
+			$cookieJar->clear();
+
+			foreach ($request->cookies as $cookie) {
+				$cookieJar->set(new Cookie($cookie->name, $cookie->value));
 			}
 
 			$client->request(

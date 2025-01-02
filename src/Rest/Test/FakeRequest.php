@@ -14,6 +14,7 @@ final readonly class FakeRequest
 	 * @param array<string, mixed> $parameters
 	 * @param array<string, mixed> $query
 	 * @param array<string, mixed> $headers
+	 * @param array<string, FakeCookie> $cookies
 	 */
 	public function __construct(
 		public string $method,
@@ -22,6 +23,7 @@ final readonly class FakeRequest
 		public array $parameters = [],
 		public array $query = [],
 		public array $headers = [],
+		public array $cookies = [],
 		public ?StreamInterface $body = null,
 		public ?Actor $actor = null,
 	)

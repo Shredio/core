@@ -22,6 +22,9 @@ final class FakeRestClient
 	/** @var array<string, mixed[]> */
 	private array $headers = [];
 
+	/** @var array<string, FakeCookie> */
+	private array $cookies = [];
+
 	private ?StreamInterface $body = null;
 
 	/** @var callable(FakeRequest $request): FakeResponse */
@@ -57,6 +60,13 @@ final class FakeRestClient
 	public function withParameters(array $parameters): self
 	{
 		$this->parameters = $parameters;
+
+		return $this;
+	}
+
+	public function withCookie(FakeCookie $cookie): self
+	{
+		$this->cookies[$cookie->name] = $cookie;
 
 		return $this;
 	}
@@ -109,6 +119,7 @@ final class FakeRestClient
 			$this->parameters,
 			$this->query,
 			$this->headers,
+			$this->cookies,
 			$this->body,
 			$this->actor,
 		));
