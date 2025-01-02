@@ -268,8 +268,14 @@ final class CoreBundle extends AbstractBundle
 		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
 			->arg('$secret', param('env(string:AUTH_PASETO_SECRET)'));
 
-		$services->set(AuthTokenProvider::class)
+		$provider = $services->set('core.authTokenProvider', AuthTokenProvider::class)
 			->autowire();
+
+		if ($container->env() === 'test') {
+			$provider->public();
+		}
+
+		$provider->alias(AuthTokenProvider::class, 'core.authTokenProvider');
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void

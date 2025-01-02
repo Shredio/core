@@ -60,12 +60,14 @@ final class SymfonyAuthenticator extends AbstractAuthenticator
 
 		$payload = $token->getPayload();
 
-		if (!isset($payload[$this->idKey])) {
+		$id = $payload[$this->idKey] ?? null;
+
+		if (!is_scalar($id)) {
 			throw new CustomUserMessageAuthenticationException('Invalid token.');
 		}
 
 		return new SelfValidatingPassport(new UserBadge(
-			$payload[$this->idKey],
+			(string) $id,
 			$this->loadUser(...),
 			$this->getAttributes($token),
 		));
