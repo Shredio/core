@@ -55,6 +55,9 @@ final class AuthTokenCommand extends Command
 		return self::SUCCESS;
 	}
 
+	/**
+	 * @return string[]|null
+	 */
 	private function getRoles(InputInterface $input): ?array
 	{
 		$roles = $input->getOption('role');
