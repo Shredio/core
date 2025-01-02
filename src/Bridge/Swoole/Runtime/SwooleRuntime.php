@@ -14,6 +14,12 @@ final class SwooleRuntime extends Runtime
 	public function __construct(array $options, ?ServerFactory $serverFactory = null)
 	{
 		parent::__construct($options, $serverFactory ?? new ServerFactoryListener($options));
+
+		fwrite(STDOUT, sprintf(
+			'Running server, spawn %s workers, %s max requests.',
+				$options['settings']['worker_num'] ?? 'unknown',
+				$options['settings']['max_request'] ?? 'unknown'
+		) . "\n");
 	}
 
 }
