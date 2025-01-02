@@ -32,7 +32,7 @@ final class EnvVars
 			return $ifNotSet;
 		}
 
-		return $value;
+		return (string) $value;
 	}
 
 	public static function require(string $name, string $description): void
@@ -42,12 +42,16 @@ final class EnvVars
 		}
 	}
 
-	private static function get(string $name): ?string
+	private static function get(string $name): mixed
 	{
+		if (isset($_ENV[$name])) {
+			return $_ENV[$name];
+		}
+
 		$value = getenv($name);
 
 		if ($value === false) {
-			return $_ENV[$name] ?? null;
+			return null;
 		}
 
 		return $value;
