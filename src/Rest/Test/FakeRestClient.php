@@ -25,6 +25,9 @@ final class FakeRestClient
 	/** @var array<string, FakeCookie> */
 	private array $cookies = [];
 
+	/** @var 'POST'|'GET'|'PATCH'|'DELETE'|'PUT'|null */
+	private ?string $httpMethod = null;
+
 	private ?StreamInterface $body = null;
 
 	/** @var callable(FakeRequest $request): FakeResponse */
@@ -81,6 +84,17 @@ final class FakeRestClient
 		return $this;
 	}
 
+	/**
+	 * @param 'POST'|'GET'|'PATCH'|'DELETE'|'PUT' $method
+	 * @return static
+	 */
+	public function withMethod(string $method): self
+	{
+		$this->httpMethod = $method;
+
+		return $this;
+	}
+
 	public function withHeader(string $name, mixed $value): self
 	{
 		$this->headers[$name] = [$value];
@@ -113,7 +127,7 @@ final class FakeRestClient
 	{
 		$endpoint = $this->controllerMetadata->getEndpoint($this->method);
 		$result = ($this->request)(new FakeRequest(
-			$this->getHttpMethod($endpoint),
+			$this->httpMethod ?? $this->getHttpMethod($endpoint),
 			$this->controllerMetadata,
 			$endpoint,
 			$this->parameters,
