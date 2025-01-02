@@ -2,22 +2,33 @@
 
 namespace Shredio\Core\Bridge\Symfony\Security;
 
+use LogicException;
+use Shredio\Core\Intl\Language;
+use Shredio\Core\Security\InMemoryUser;
+use Shredio\Core\Security\Token\Token;
 use Shredio\Core\Security\TokenProvider;
+use Shredio\Core\Security\UserEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\CustomUserMessageAuthenticationException;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Http\Authenticator\AbstractAuthenticator;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 
-final class PasetoAuthenticator extends AbstractAuthenticator
+final class SymfonyAuthenticator extends AbstractAuthenticator
 {
 
+	/**
+	 * @param UserProviderInterface<UserInterface> $userProvider
+	 */
 	public function __construct(
 		private readonly TokenProvider $tokenProvider,
+		private readonly UserProviderInterface $userProvider,
 		private readonly string $sessionKey = 'sid',
 		private readonly string $idKey = 'id',
 	)
@@ -31,7 +42,11 @@ final class PasetoAuthenticator extends AbstractAuthenticator
 
 	public function authenticate(Request $request): Passport
 	{
-		$str = $this->getTokenInRequest($request);
+		$str = $this->getTokenInHeader($request);
+
+		if ($str === null) {
+			$str = $this->getTokenInCookies($request);
+		}
 
 		if ($str === null) {
 			throw new CustomUserMessageAuthenticationException('No token provided.');
@@ -49,7 +64,35 @@ final class PasetoAuthenticator extends AbstractAuthenticator
 			throw new CustomUserMessageAuthenticationException('Invalid token.');
 		}
 
-		return new SelfValidatingPassport(new UserBadge($payload[$this->idKey]));
+		return new SelfValidatingPassport(new UserBadge(
+			$payload[$this->idKey],
+			$this->loadUser(...),
+			$this->getAttributes($token),
+		));
+	}
+
+	/**
+	 * @param array<string, mixed> $attributes
+	 */
+	private function loadUser(string $identifier, array $attributes): UserEntity
+	{
+		if (!isset($attributes['roles'])) {
+			$user = $this->userProvider->loadUserByIdentifier($identifier);
+
+			if (!$user instanceof UserEntity) {
+				throw new LogicException(
+					sprintf(
+						'User provider must return an instance of "%s", %s given.',
+						UserEntity::class,
+						get_debug_type($user),
+					),
+				);
+			}
+
+			return $user;
+		}
+
+		return new InMemoryUser($identifier, $attributes['roles'], $attributes['language'] ?? Language::English);
 	}
 
 	public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response
@@ -62,7 +105,7 @@ final class PasetoAuthenticator extends AbstractAuthenticator
 		return null;
 	}
 
-	private function getTokenInRequest(Request $request): ?string
+	private function getTokenInHeader(Request $request): ?string
 	{
 		// Authorization header
 		$value = $request->headers->get('Authorization', '');
@@ -79,7 +122,11 @@ final class PasetoAuthenticator extends AbstractAuthenticator
 			return $value;
 		}
 
-		// Cookies
+		return null;
+	}
+
+	private function getTokenInCookies(Request $request): ?string
+	{
 		$value = $request->cookies->get('sid', '');
 
 		if (is_string($value) && $value !== '') {
@@ -87,6 +134,26 @@ final class PasetoAuthenticator extends AbstractAuthenticator
 		}
 
 		return null;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	private function getAttributes(Token $token): array
+	{
+		$attributes = [];
+
+		$payload = $token->getPayload();
+
+		if (isset($payload['roles']) && is_array($payload['roles'])) {
+			$attributes['roles'] = $payload['roles'];
+		}
+
+		if (isset($payload['language']) && is_string($payload['language']) && $lang = Language::tryFrom($payload['language'])) {
+			$attributes['language'] = $lang;
+		}
+
+		return $attributes;
 	}
 
 }

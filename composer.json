@@ -30,7 +30,7 @@
 		"ramsey/uuid": "^4.7",
 		"paragonie/paseto": "^v3.2.3",
 		"cycle/annotated": "^4.2",
-		"phpunit/phpunit": "^11.4",
+		"phpunit/phpunit": "^11.5",
 		"nette/php-generator": "^4.1",
 		"symfony/security-bundle": "^7.2",
 		"symfony/cache": "^7.2",
@@ -40,7 +40,9 @@
 		"runtime/swoole": "^0.4.0",
 		"doctrine/doctrine-bundle": "^2.13",
 		"doctrine/orm": "^3.3",
-		"webchemistry/fixtures": "^2.0"
+		"webchemistry/fixtures": "^2.0",
+		"poliander/cron": "^3.2",
+		"nette/neon": "^3.4"
 	},
 	"config": {
 		"allow-plugins": {

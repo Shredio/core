@@ -19,12 +19,23 @@ final class PasetoProvider implements TokenProvider
 
 	private SymmetricKey $secret;
 
+	/** @var array<string, mixed> */
+	private array $defaultClaims = [];
+
 	public function __construct(
 		#[SensitiveParameter]
 		string $secret,
 	)
 	{
 		$this->secret = $this->createSymmetricKeyFromBase64($secret);
+	}
+
+	/**
+	 * @param array<string, mixed> $defaultClaims
+	 */
+	public function setDefaultClaims(array $defaultClaims): void
+	{
+		$this->defaultClaims = $defaultClaims;
 	}
 
 	public function load(string $id): ?PasetoToken
@@ -38,22 +49,36 @@ final class PasetoProvider implements TokenProvider
 			return null;
 		}
 
-		return new PasetoToken($id, $token->getClaims());
+		$claims = $token->getClaims();
+		$payload = $claims[self::PayloadClaimKey] ?? null;
+
+		if (!is_array($payload)) {
+			return null;
+		}
+
+		unset($claims[self::PayloadClaimKey]);
+
+		return new PasetoToken($id, $payload, $claims);
 	}
 
 	/**
-	 * @param mixed[] $payload
+	 * @param array<string, mixed> $payload
+	 * @param array<string, mixed> $claims
 	 */
-	public function create(array $payload, ?DateTimeInterface $expiresAt = null): PasetoToken
+	public function create(array $payload, ?DateTimeInterface $expiresAt = null, array $claims = []): PasetoToken
 	{
 		$token = Builder::getLocal($this->secret, new Version4())
 			->setExpiration($expiresAt)
 			->setIssuedAt()
 			->setNotBefore();
 
-		foreach ($payload as $key => $value) {
+		$claims = array_merge($this->defaultClaims, $claims);
+
+		foreach ($claims as $key => $value) {
 			$token->set($key, $value);
 		}
+
+		$token->set(self::PayloadClaimKey, $payload);
 
 		return new PasetoToken($token->toString(), $payload);
 	}

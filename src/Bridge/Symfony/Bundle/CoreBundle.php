@@ -24,8 +24,8 @@ use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
 use Shredio\Core\Bridge\Symfony\Reporter\SymfonyExceptionReporter;
 use Shredio\Core\Bridge\Symfony\Rest\RestLoader;
 use Shredio\Core\Bridge\Symfony\Rest\SymfonyRestOperationsFactory;
-use Shredio\Core\Bridge\Symfony\Security\PasetoAuthenticator;
-use Shredio\Core\Bridge\Symfony\Security\SymfonyUserProvider;
+use Shredio\Core\Bridge\Symfony\Security\SymfonyAuthenticator;
+use Shredio\Core\Bridge\Symfony\Security\SymfonyUserContext;
 use Shredio\Core\Bridge\Symfony\Serializer\AccountIdNormalizer;
 use Shredio\Core\Bridge\Symfony\Serializer\KeepObjectNormalizer;
 use Shredio\Core\Bridge\Symfony\Serializer\SymbolNormalizer;
@@ -36,6 +36,9 @@ use Shredio\Core\Cache\CacheFactory;
 use Shredio\Core\Cache\Http\HttpCache;
 use Shredio\Core\Cache\Http\HttpCacheManager;
 use Shredio\Core\Cache\PrefixCache;
+use Shredio\Core\Command\AuthTokenCommand;
+use Shredio\Core\Command\DecodeTokenCommand;
+use Shredio\Core\Command\EncodeTokenCommand;
 use Shredio\Core\Database\Rapid\EntityRapidOperationFactory;
 use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Entity\Metadata\ContextExtractor;
@@ -65,9 +68,10 @@ use Shredio\Core\Rest\Metadata\DefaultControllerMetadataFactory;
 use Shredio\Core\Rest\Metadata\DefaultEndpointMetadataFactory;
 use Shredio\Core\Rest\Metadata\EndpointMetadataFactory;
 use Shredio\Core\Rest\RestOperationsFactory;
+use Shredio\Core\Security\AuthTokenProvider;
 use Shredio\Core\Security\PasetoProvider;
 use Shredio\Core\Security\TokenProvider;
-use Shredio\Core\Security\UserProvider;
+use Shredio\Core\Security\UserContext;
 use Symfony\Bridge\PsrHttpMessage\EventListener\PsrResponseListener;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
@@ -122,6 +126,7 @@ final class CoreBundle extends AbstractBundle
 		$this->loadMiddlewares($container, $builder);
 		$this->loadSerializer($container, $builder);
 		$this->loadHttpCache($container, $builder);
+		$this->loadConsole($container, $builder);
 	}
 
 	private function loadBasics(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -255,14 +260,16 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		$services->set('core.authenticator', PasetoAuthenticator::class)
+		$services->set('core.authenticator', SymfonyAuthenticator::class)
 			->autowire()
-			->autoconfigure()
-			->arg('$idKey', 'val');
+			->autoconfigure();
 
-		$this->addInterfaceService($services, UserProvider::class, SymfonyUserProvider::class);
+		$this->addInterfaceService($services, UserContext::class, SymfonyUserContext::class);
 		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
 			->arg('$secret', param('env(string:AUTH_PASETO_SECRET)'));
+
+		$services->set(AuthTokenProvider::class)
+			->autowire();
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -394,6 +401,23 @@ final class CoreBundle extends AbstractBundle
 
 		$services->set(HttpCacheManager::class)
 			->args([tagged_iterator('core.http_cache')]);
+	}
+
+	private function loadConsole(ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		$services = $container->services();
+
+		$services->set(EncodeTokenCommand::class)
+			->autowire()
+			->tag('console.command');
+
+		$services->set(DecodeTokenCommand::class)
+			->autowire()
+			->tag('console.command');
+
+		$services->set(AuthTokenCommand::class)
+			->autowire()
+			->tag('console.command');
 	}
 
 }

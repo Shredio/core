@@ -4,6 +4,9 @@ namespace Shredio\Core\Security\Authentication;
 
 use DateTimeInterface;
 
+/**
+ * @deprecated Use Shredio\Core\Security\* instead.
+ */
 interface Token
 {
 

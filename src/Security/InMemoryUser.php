@@ -9,16 +9,20 @@ final readonly class InMemoryUser implements UserEntity
 
 	private AccountId $id;
 
+	/** @var string[] */
+	private array $roles;
+
 	/**
-	 * @param array<string> $roles
+	 * @param string[] $roles
 	 */
 	public function __construct(
 		string|int $id,
-		private array $roles,
+		array $roles,
 		private Language $language,
 	)
 	{
 		$this->id = AccountId::from($id);
+		$this->roles = array_map(strtoupper(...), $roles);
 	}
 
 	public function getId(): AccountId

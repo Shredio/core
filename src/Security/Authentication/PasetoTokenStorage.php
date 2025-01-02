@@ -15,6 +15,9 @@ use ParagonIE\Paseto\Rules\ValidAt;
 use SensitiveParameter;
 use Throwable;
 
+/**
+ * @deprecated Use Shredio\Core\Security\* instead.
+ */
 final readonly class PasetoTokenStorage implements TokenStorage
 {
 
@@ -34,7 +37,7 @@ final readonly class PasetoTokenStorage implements TokenStorage
 	public function create(array $payload, ?DateTimeInterface $expiresAt = null): Token
 	{
 		$token = Builder::getLocal($this->key, new Version4())
-			->set('payload', $payload)
+			->set('val', $payload)
 			->setExpiration($expiresAt)
 			->setIssuedAt()
 			->setNotBefore();
@@ -53,7 +56,7 @@ final readonly class PasetoTokenStorage implements TokenStorage
 			return null;
 		}
 
-		$payload = $token->get('payload');
+		$payload = $token->get('val');
 		$exp = $token->get('exp');
 		$expiration = null;
 

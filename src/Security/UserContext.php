@@ -2,7 +2,7 @@
 
 namespace Shredio\Core\Security;
 
-interface UserProvider
+interface UserContext
 {
 
 	public function getUser(): UserEntity;

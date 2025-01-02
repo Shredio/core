@@ -6,11 +6,13 @@ final readonly class PasetoToken implements Token
 {
 
 	/**
-	 * @param mixed[] $payload
+	 * @param array<string, mixed> $payload
+	 * @param array<string, mixed> $claims
 	 */
 	public function __construct(
 		public string $id,
 		public array $payload,
+		public array $claims = [],
 	)
 	{
 	}
@@ -21,11 +23,24 @@ final readonly class PasetoToken implements Token
 	}
 
 	/**
-	 * @return mixed[]
+	 * @return array<string, mixed>
 	 */
 	public function getPayload(): array
 	{
 		return $this->payload;
+	}
+
+	/**
+	 * @return array<string, mixed>
+	 */
+	public function getClaims(): array
+	{
+		return $this->claims;
+	}
+
+	public function __toString(): string
+	{
+		return $this->id;
 	}
 
 }
