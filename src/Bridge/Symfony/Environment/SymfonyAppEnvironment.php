@@ -3,6 +3,7 @@
 namespace Shredio\Core\Bridge\Symfony\Environment;
 
 use Shredio\Core\Environment\AppEnvironment;
+use Shredio\Core\Environment\EnvVars;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpKernel\KernelInterface;
 
@@ -24,6 +25,15 @@ final readonly class SymfonyAppEnvironment implements AppEnvironment
 		private bool $debugMode,
 	)
 	{
+	}
+
+	public static function createFromEnv(): self
+	{
+		return new self(
+			EnvVars::getString('APP_ENV'),
+			EnvVars::getString('APP_RUNTIME_ENV'),
+			EnvVars::getBoolean('APP_DEBUG'),
+		);
 	}
 
 	public function isProduction(): bool
