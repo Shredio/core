@@ -2,6 +2,8 @@
 
 namespace Shredio\Core\Bridge\Symfony\DI;
 
+use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
+use Shredio\Core\Environment\EnvVars;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -17,8 +19,10 @@ final readonly class RepositoryRegister
 
 	public function __construct(ContainerConfigurator $container)
 	{
-		$this->stage = $container->env() === 'stage';
-		$this->cache = strcasecmp($_ENV['CACHE_REPOSITORY'], 'true') === 0;
+		EnvVars::require('CACHE_REPOSITORY', 'Determines if the repository should be cached.');
+
+		$this->stage = SymfonyAppEnvironment::createFromEnv()->isStaging();
+		$this->cache = EnvVars::getBoolean('CACHE_REPOSITORY');
 		$this->services = $container->services();
 		$this->services->defaults()
 			->autowire();
