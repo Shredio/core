@@ -6,6 +6,7 @@ use LogicException;
 use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Adapter\ArrayAdapter;
 use Symfony\Component\Cache\Adapter\FilesystemAdapter;
+use Symfony\Component\Cache\Adapter\NullAdapter;
 use Symfony\Component\Cache\Adapter\RedisAdapter;
 use Symfony\Component\Cache\Marshaller\MarshallerInterface;
 
@@ -37,6 +38,10 @@ final class SymfonyAdapterFactory
 
 		if (str_starts_with($dsn, 'array:')) {
 			return new ArrayAdapter();
+		}
+
+		if (str_starts_with($dsn, 'null:')) {
+			return new NullAdapter();
 		}
 
 		if (str_starts_with($dsn, 'redis:') || str_starts_with($dsn, 'rediss:')) {
