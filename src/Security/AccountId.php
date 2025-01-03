@@ -19,11 +19,17 @@ final readonly class AccountId implements Stringable
 		return $this->id;
 	}
 
+	/**
+	 * @return non-empty-string
+	 */
 	public function toString(): string
 	{
 		return (string) $this->id;
 	}
 
+	/**
+	 * @return non-empty-string
+	 */
 	public function __toString(): string
 	{
 		return $this->toString();
