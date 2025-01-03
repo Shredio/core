@@ -13,7 +13,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException as SymfonyHttpException
 use Symfony\Component\HttpKernel\KernelEvents;
 use Throwable;
 
-#[AsEventListener(event: KernelEvents::EXCEPTION, method: 'onKernelException', priority: 1)]
+#[AsEventListener(event: KernelEvents::EXCEPTION, method: 'onKernelException', priority: 129)]
 final readonly class ErrorListener
 {
 
