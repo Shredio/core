@@ -230,6 +230,8 @@ final class DoctrineRepositoryHelper implements ResetInterface
 
 		$this->applyCriteria($qb, $criteria);
 
+		$qb->setMaxResults(1);
+
 		return (bool) $qb->getQuery()->getOneOrNullResult();
 	}
 
