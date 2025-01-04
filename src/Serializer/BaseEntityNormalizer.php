@@ -199,4 +199,12 @@ abstract class BaseEntityNormalizer implements NormalizerAwareInterface, Normali
 		return ($context['operation'] ?? null) === 'update';
 	}
 
+	/**
+	 * @param mixed[] $context
+	 */
+	protected function isOperation(array $context): bool
+	{
+		return in_array($context['operation'] ?? null, ['create', 'update'], true);
+	}
+
 }
