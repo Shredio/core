@@ -13,6 +13,7 @@ use Shredio\Core\Rest\Test\FakeRestClientFactory;
 use Shredio\Core\Security\InMemoryUser;
 use Shredio\Core\Test\Assert\HttpExpectation;
 use Shredio\Core\Test\Authentication\Actor;
+use Shredio\Core\Test\Authentication\ForNone;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\BrowserKit\Cookie;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
@@ -58,7 +59,7 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 		$factory = new FakeRestClientFactory($this, function (FakeRequest $request) use ($client, $urlGenerator, $psrHttpFactory): FakeResponse {
 			$testBench = TestHelper::getTestBench($client->getKernel());
 
-			if ($actor = $request->actor) {
+			if (($actor = $request->actor) && !$actor instanceof ForNone) {
 				TestHelper::getInstance($this)->tryFillActor($actor);
 
 				$testBench->loginUser(new InMemoryUser($actor->getId()->toOriginal(), $actor->getRoles(), $actor->getLanguage()));
