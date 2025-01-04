@@ -135,11 +135,37 @@ abstract class BaseRapidInserter implements RapidInserter
 		}
 
 		if ($values->count() !== count($this->required)) {
+			$this->tryToThrowMissingOrExtraFields($values->keys(), $this->required);
+
 			throw new InvalidArgumentException('Data must have same length.');
 		}
 
 		if ($this->required !== $values->keys()) {
+			$this->tryToThrowMissingOrExtraFields($values->keys(), $this->required);
+
 			throw new InvalidArgumentException('Data must have same order.');
+		}
+	}
+
+	/**
+	 * @param string[] $given
+	 * @param string[] $required
+	 */
+	private function tryToThrowMissingOrExtraFields(array $given, array $required): void
+	{
+		$missing = array_diff($required, $given);
+		$extra = array_diff($given, $required);
+
+		if ($missing && $extra) {
+			throw new InvalidArgumentException(sprintf('Missing fields: %s, Extra fields: %s', implode(', ', $missing), implode(', ', $extra)));
+		}
+
+		if ($missing) {
+			throw new InvalidArgumentException(sprintf('Missing fields: %s', implode(', ', $missing)));
+		}
+
+		if ($extra) {
+			throw new InvalidArgumentException(sprintf('Extra fields: %s', implode(', ', $extra)));
 		}
 	}
 
