@@ -8,11 +8,11 @@ use LogicException;
 abstract class BaseRapidInserter implements RapidInserter
 {
 
-	public const ColumnsToUpdate = 'columnsToUpdate';
-	public const Mode = 'mode';
-	public const ModeNormal = 0;
-	public const ModeUpsert = 1;
-	public const ModeInsertNonExisting = 2;
+	public const string ColumnsToUpdate = 'columnsToUpdate';
+	public const string Mode = 'mode';
+	public const int ModeNormal = 0;
+	public const int ModeUpsert = 1;
+	public const int ModeInsertNonExisting = 2;
 
 	protected string $sql = '';
 
