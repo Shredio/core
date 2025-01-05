@@ -208,7 +208,7 @@ final class FakeRestClient
 		if (!$routeParameters) {
 			throw new LogicException(
 				sprintf(
-					'Cannot call withIdentifier() for %s::%s, because endpoint does not have route parameters.',
+					'Cannot call withIdentifiers() for %s::%s, because endpoint does not have route parameters.',
 					$this->controllerMetadata->className,
 					$endpoint->name,
 				),
@@ -218,7 +218,7 @@ final class FakeRestClient
 		if (count($routeParameters) !== count($identifiers)) {
 			throw new LogicException(
 				sprintf(
-					'Cannot call withIdentifier() for %s::%s, because endpoint has %d route parameters, but %d identifiers were provided.',
+					'Cannot call withIdentifiers() for %s::%s, because endpoint has %d route parameters, but %d identifiers were provided.',
 					$this->controllerMetadata->className,
 					$endpoint->name,
 					count($routeParameters),
