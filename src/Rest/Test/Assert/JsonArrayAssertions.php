@@ -74,6 +74,20 @@ class JsonArrayAssertions
 	/**
 	 * @param string[] $keys
 	 */
+	public function assertNotHasKeys(array $keys): self
+	{
+		$this->run(function (array $values) use ($keys): void {
+			foreach ($keys as $key) {
+				Assert::assertArrayNotHasKey($key, $values);
+			}
+		});
+
+		return $this;
+	}
+
+	/**
+	 * @param string[] $keys
+	 */
 	public function assertSameKeys(array $keys): self
 	{
 		$this->assertCount(count($keys));
