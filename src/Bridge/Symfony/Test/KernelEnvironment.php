@@ -35,6 +35,11 @@ trait KernelEnvironment // @phpstan-ignore-line
 		}
 	}
 
+	protected function disableCatchExceptions(): void
+	{
+		$this->getTestBench()->setCatchExceptions(false);
+	}
+
 	protected function getTestBench(): TestBench
 	{
 		return TestHelper::getTestBench($this->getKernel());

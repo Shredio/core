@@ -14,19 +14,22 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Throwable;
 
 #[AsEventListener(event: KernelEvents::EXCEPTION, method: 'onKernelException', priority: 129)]
-final readonly class ErrorListener
+final class ErrorListener
 {
 
+	public bool $catchExceptions;
+
 	public function __construct(
-		private AppEnvironment $appEnv,
-		private ErrorsPayloadProcessor $errorsPayloadProcessor,
+		private readonly ErrorsPayloadProcessor $errorsPayloadProcessor,
+		private readonly AppEnvironment $appEnv,
 	)
 	{
+		$this->catchExceptions = !$this->appEnv->isDebugMode();
 	}
 
 	public function onKernelException(ExceptionEvent $event): void
 	{
-		if ($this->appEnv->isDebugMode()) {
+		if (!$this->catchExceptions) {
 			return;
 		}
 

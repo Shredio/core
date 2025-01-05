@@ -6,19 +6,20 @@ use Symfony\Component\ErrorHandler\ErrorRenderer\ErrorRendererInterface;
 use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Throwable;
 
-final readonly class ErrorHandlerForTests implements ErrorRendererInterface
+final class ErrorHandlerForTests implements ErrorRendererInterface
 {
 
+	public bool $throwExceptions = false;
+
 	public function __construct(
-		private ErrorRendererInterface $decorated,
-		private ?TestBench $testBench = null,
+		private readonly ErrorRendererInterface $decorated,
 	)
 	{
 	}
 
 	public function render(Throwable $exception): FlattenException
 	{
-		if ($this->testBench?->throwExceptions) {
+		if ($this->throwExceptions) {
 			throw $exception;
 		}
 

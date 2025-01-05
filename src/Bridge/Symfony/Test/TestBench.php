@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Bridge\Symfony\Test;
 
+use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Symfony\Bundle\FrameworkBundle\Test\TestBrowserToken;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -16,12 +17,18 @@ final class TestBench
 
 	private bool $setUser = false;
 
-	public bool $throwExceptions = false;
-
 	public function __construct(
 		private readonly TokenStorageInterface $tokenStorage,
+		private readonly ErrorListener $errorListener,
+		private readonly ErrorHandlerForTests $errorHandlerForTests,
 	)
 	{
+	}
+
+	public function setCatchExceptions(bool $catchExceptions): void
+	{
+		$this->errorListener->catchExceptions = $catchExceptions;
+		$this->errorHandlerForTests->throwExceptions = !$catchExceptions;
 	}
 
 	public function loginUser(?UserInterface $user): void

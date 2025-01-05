@@ -384,7 +384,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 		$services->set(ErrorHandlerForTests::class)
-			->args([service(ErrorHandlerForTests::class . '.inner'), service('testbench')])
+			->args([service(ErrorHandlerForTests::class . '.inner')])
 			->decorate('error_handler.error_renderer.serializer');
 
 		$services->set('testbench', TestBench::class)
