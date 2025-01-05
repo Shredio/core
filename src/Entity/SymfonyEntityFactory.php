@@ -17,6 +17,7 @@ use Shredio\Core\Payload\FieldErrorPayload;
 use Shredio\Core\Payload\InternalErrorPayload;
 use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 use Symfony\Component\Serializer\Exception\MissingConstructorArgumentsException;
+use Symfony\Component\Serializer\Exception\NotNormalizableValueException;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\Normalizer\DenormalizerInterface;
 use Symfony\Component\Validator\ConstraintViolationListInterface;
@@ -123,7 +124,13 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 
 			throw new ValidationException($errors);
 		} catch (ExtraAttributesException $exception) {
-			throw new InvalidDataException($exception);
+			$message = sprintf('Extra values: %s', implode(', ', $exception->getExtraAttributes()));
+
+			throw new InvalidDataException($message, $exception, [
+				'extraAttributes' => $exception->getExtraAttributes(),
+			]);
+		} catch (NotNormalizableValueException $exception) {
+			throw new InvalidDataException($exception->getMessage(), $exception);
 		}
 
 		if (!is_a($object, $className, true)) {

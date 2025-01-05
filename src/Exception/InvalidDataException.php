@@ -5,7 +5,7 @@ namespace Shredio\Core\Exception;
 use RuntimeException;
 use Shredio\Core\Payload\ErrorsPayload;
 use Shredio\Core\Payload\InternalErrorPayload;
-use Symfony\Component\Serializer\Exception\ExtraAttributesException;
+use Throwable;
 
 /**
  * Exception thrown when invalid data is detected.
@@ -13,15 +13,16 @@ use Symfony\Component\Serializer\Exception\ExtraAttributesException;
 final class InvalidDataException extends RuntimeException implements HttpException
 {
 
+	/**
+	 * @param mixed[] $details
+	 */
 	public function __construct(
-		private readonly ExtraAttributesException $previous,
+		string $message,
+		private readonly Throwable $previous,
+		private readonly array $details = [],
 	)
 	{
-		parent::__construct(
-			sprintf('Extra values: %s', implode(', ', $this->previous->getExtraAttributes())),
-			400,
-			$this->previous,
-		);
+		parent::__construct($message, 400, $this->previous);
 	}
 
 	public function getHttpCode(): int
@@ -31,8 +32,14 @@ final class InvalidDataException extends RuntimeException implements HttpExcepti
 
 	public function getPayload(): ErrorsPayload
 	{
+		$extra = [];
+
+		if ($this->details) {
+			$extra['internal'] = $this->details;
+		}
+
 		return new ErrorsPayload([
-			InternalErrorPayload::fromThrowable($this->previous, extra: ['internal' => ['extraAttributes' => $this->previous->getExtraAttributes()]]),
+			InternalErrorPayload::fromThrowable($this->previous, extra: $extra),
 		]);
 	}
 
