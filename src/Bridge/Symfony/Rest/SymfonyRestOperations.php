@@ -178,7 +178,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 	private function requirePermission(string $permission, ?object $source = null): void
 	{
-		if (!$this->guardNamespace) {
+		if (!$source && !$this->guardNamespace) {
 			return;
 		}
 
