@@ -59,6 +59,11 @@ final readonly class ForUnsigned implements Actor
 		return $this->author->isFilled();
 	}
 
+	public function hasAuthor(): bool
+	{
+		return true;
+	}
+
 	public function copy(): static
 	{
 		return new self($this->author->copy());

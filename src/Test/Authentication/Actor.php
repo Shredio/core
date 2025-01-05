@@ -19,6 +19,8 @@ interface Actor
 
 	public function getSignedActor(): ?Actor;
 
+	public function hasAuthor(): bool;
+
 	/**
 	 * @return string[]
 	 */

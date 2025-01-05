@@ -32,6 +32,11 @@ trait ActorToTestTrait
 		$this->id = $id;
 	}
 
+	public function hasAuthor(): bool
+	{
+		return true;
+	}
+
 	public function getLanguage(): Language
 	{
 		return $this->language;

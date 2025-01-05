@@ -53,6 +53,11 @@ final class ForNone implements Actor
 		throw new LogicException('Cannot get scalar language for none actor.');
 	}
 
+	public function hasAuthor(): bool
+	{
+		return false;
+	}
+
 	public function copy(): static
 	{
 		return $this;
