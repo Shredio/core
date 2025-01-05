@@ -8,7 +8,7 @@ use Symfony\Component\HttpKernel\KernelEvents;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 
-#[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest')]
+#[AsEventListener(event: KernelEvents::REQUEST, method: 'onKernelRequest', priority: 4096)]
 final class TestBench
 {
 
