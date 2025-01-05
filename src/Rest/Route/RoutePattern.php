@@ -19,6 +19,18 @@ final readonly class RoutePattern
 		$this->route = '/' . trim($route, '/');
 	}
 
+	/**
+	 * @return string[]
+	 */
+	public function getParameters(): array
+	{
+		if (!preg_match_all('/{([^}]+)}/', $this->route, $matches)) {
+			return [];
+		}
+
+		return $matches[1];
+	}
+
 	public function withPrependedPattern(string $pattern): self
 	{
 		$pattern = trim($pattern, '/');

@@ -2,13 +2,14 @@
 
 namespace Shredio\Core\Rest\Test;
 
+use ArrayIterator;
 use LogicException;
+use MultipleIterator;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\StreamInterface;
 use Shredio\Core\Rest\Metadata\ControllerMetadata;
 use Shredio\Core\Rest\Metadata\EndpointMetadata;
 use Shredio\Core\Rest\Test\Attribute\TestControllerMethod;
-use Shredio\Core\Struct\PropertyValue;
 use Shredio\Core\Test\Authentication\Actor;
 
 final class FakeRestClient
@@ -36,8 +37,8 @@ final class FakeRestClient
 
 	private ?Actor $actor = null;
 
-	/** @var PropertyValue<mixed>|null  */
-	private ?PropertyValue $identifier = null;
+	/** @var mixed[]|null  */
+	private ?array $identifiers = null;
 
 	/**
 	 * @param callable(FakeRequest $request): FakeResponse $request
@@ -71,9 +72,9 @@ final class FakeRestClient
 		return $this;
 	}
 
-	public function withIdentifier(mixed $value): self
+	public function withIdentifiers(mixed ...$values): self
 	{
-		$this->identifier = new PropertyValue($value);
+		$this->identifiers = $values;
 
 		return $this;
 	}
@@ -196,14 +197,15 @@ final class FakeRestClient
 	 */
 	private function resolveParameters(EndpointMetadata $endpoint): array
 	{
-		if (!$this->identifier) {
+		$identifiers = $this->identifiers;
+
+		if ($identifiers === null) {
 			return $this->parameters;
 		}
 
-		$routeParameters = $endpoint->getParameters($this->controllerMetadata);
-		$key = array_key_first($routeParameters);
+		$routeParameters = $endpoint->getPattern($this->controllerMetadata)->getParameters();
 
-		if ($key === null) {
+		if (!$routeParameters) {
 			throw new LogicException(
 				sprintf(
 					'Cannot call withIdentifier() for %s::%s, because endpoint does not have route parameters.',
@@ -213,18 +215,27 @@ final class FakeRestClient
 			);
 		}
 
-		if (count($routeParameters) > 1) {
+		if (count($routeParameters) !== count($identifiers)) {
 			throw new LogicException(
 				sprintf(
-					'Cannot call withIdentifier() for %s::%s, because endpoint has more than one route parameter. Use withParameters() instead.',
+					'Cannot call withIdentifier() for %s::%s, because endpoint has %d route parameters, but %d identifiers were provided.',
 					$this->controllerMetadata->className,
 					$endpoint->name,
+					count($routeParameters),
+					count($identifiers),
 				),
 			);
 		}
 
 		$parameters = $this->parameters;
-		$parameters[$key] = $this->identifier->value;
+
+		$multipleIterator = new MultipleIterator(MultipleIterator::MIT_NEED_ALL);
+		$multipleIterator->attachIterator(new ArrayIterator($routeParameters), 'key');
+		$multipleIterator->attachIterator(new ArrayIterator($identifiers), 'value');
+
+		foreach ($multipleIterator as $value) {
+			$parameters[$value['key']] = $value['value'];
+		}
 
 		return $parameters;
 	}
