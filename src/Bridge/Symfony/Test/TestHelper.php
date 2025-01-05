@@ -6,7 +6,6 @@ use LogicException;
 use PHPUnit\Framework\TestCase;
 use Shredio\Core\Security\AccountId;
 use Shredio\Core\Test\Authentication\Actor;
-use Shredio\Core\Test\Authentication\ForNone;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Component\DependencyInjection\Container;
 use Symfony\Component\DependencyInjection\Exception\ServiceNotFoundException;
@@ -79,10 +78,6 @@ final class TestHelper
 
 	private function fillActor(Actor $actor): void
 	{
-		if ($actor instanceof ForNone) {
-			return;
-		}
-
 		$actor->getAuthorActor()->setId(AccountId::from(1));
 		$actor->getSignedActor()?->setId(AccountId::from(2));
 	}
@@ -139,7 +134,7 @@ final class TestHelper
 
 		foreach ($this->context->providedData() as $data) {
 			if ($data instanceof Actor) {
-				$this->fillActor($data);
+				$this->tryFillActor($data);
 
 				$this->actorToSignIn = $data->getSignedActor();
 			}

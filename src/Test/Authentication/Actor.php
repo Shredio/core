@@ -38,4 +38,6 @@ interface Actor
 	 */
 	public function isFilled(): bool;
 
+	public function copy(): static;
+
 }

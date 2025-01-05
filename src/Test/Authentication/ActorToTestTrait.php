@@ -57,4 +57,12 @@ trait ActorToTestTrait
 		return $this->id !== null;
 	}
 
+	public function copy(): static
+	{
+		$copy = clone $this;
+		unset($copy->id);
+
+		return $copy;
+	}
+
 }

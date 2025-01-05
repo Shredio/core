@@ -5,14 +5,17 @@ namespace Shredio\Core\Test\Authentication;
 use Shredio\Core\Intl\Language;
 use Shredio\Core\Security\AccountId;
 
-final class ForCollection implements Actor
+final readonly class ForDistinct implements Actor
 {
 
+	private Actor $signed;
+
 	public function __construct(
-		private readonly Actor $author,
-		private readonly ?Actor $signed = null,
+		private Actor $author,
+		Actor $signed = null,
 	)
 	{
+		$this->signed = $signed ?? $this->author->copy();
 	}
 
 	public function getId(): AccountId
@@ -35,7 +38,7 @@ final class ForCollection implements Actor
 		return $this->author;
 	}
 
-	public function getSignedActor(): ?Actor
+	public function getSignedActor(): Actor
 	{
 		return $this->signed;
 	}
@@ -58,6 +61,14 @@ final class ForCollection implements Actor
 	public function isFilled(): bool
 	{
 		return $this->author->isFilled();
+	}
+
+	public function copy(): static
+	{
+		return new self(
+			$this->author->copy(),
+			$this->signed->copy(),
+		);
 	}
 
 }
