@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Bridge\Symfony\Security;
 
+use Shredio\Core\Security\AccountId;
 use Shredio\Core\Security\UserEntity;
 use Shredio\Core\Security\UserContext;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -14,6 +15,16 @@ final readonly class SymfonyUserContext implements UserContext
 		private Security $security,
 	)
 	{
+	}
+
+	public function getUserId(): AccountId
+	{
+		return $this->getUser()->getId();
+	}
+
+	public function getUserIdOrNull(): ?AccountId
+	{
+		return $this->getUserOrNull()?->getId();
 	}
 
 	public function getUser(): UserEntity
