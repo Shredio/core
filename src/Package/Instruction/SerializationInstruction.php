@@ -2,7 +2,16 @@
 
 namespace Shredio\Core\Package\Instruction;
 
-final class SerializationInstruction implements PackingInstruction
+final readonly class SerializationInstruction implements PackingInstruction
 {
+
+	/**
+	 * @param array<string, mixed> $context
+	 */
+	public function __construct(
+		public array $context = [],
+	)
+	{
+	}
 
 }

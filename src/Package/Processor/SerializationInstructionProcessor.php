@@ -22,7 +22,7 @@ final class SerializationInstructionProcessor implements InstructionProcessor
 			return null;
 		}
 
-		return $item->withValue($this->normalizer->normalize($item->value));
+		return $item->withValue($this->normalizer->normalize($item->value, context: $instruction->context));
 	}
 
 }
