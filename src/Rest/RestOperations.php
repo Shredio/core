@@ -7,6 +7,8 @@ use Psr\Http\Message\ResponseInterface;
 interface RestOperations
 {
 
+	public const string SerializationContext = 'serializationContext';
+
 	public const int NoGuard = 0;
 	public const int GuardOnEntity = 1;
 	public const int GuardOnAttribute = 2;
@@ -14,17 +16,25 @@ interface RestOperations
 
 	/**
 	 * @param mixed[] $values
+	 * @param mixed[] $options
 	 */
-	public function create(array $values, int $guardMode = self::GuardOnAttribute): ResponseInterface;
+	public function create(array $values, int $guardMode = self::GuardOnAttribute, array $options = []): ResponseInterface;
 
-	public function read(mixed $id, int $guardMode = self::GuardOnEntity): ResponseInterface;
+	/**
+	 * @param mixed[] $options
+	 */
+	public function read(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface;
 
 	/**
 	 * @param mixed[] $values
+	 * @param mixed[] $options
 	 */
-	public function update(mixed $id, array $values, int $guardMode = self::GuardOnEntity): ResponseInterface;
+	public function update(mixed $id, array $values, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface;
 
-	public function delete(mixed $id, int $guardMode = self::GuardOnEntity): ResponseInterface;
+	/**
+	 * @param mixed[] $options
+	 */
+	public function delete(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface;
 
 
 }

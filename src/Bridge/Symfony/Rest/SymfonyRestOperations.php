@@ -37,7 +37,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 	{
 	}
 
-	public function create(array $values, int $guardMode = self::GuardOnAttribute): ResponseInterface
+	public function create(array $values, int $guardMode = self::GuardOnAttribute, array $options = []): ResponseInterface
 	{
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('create');
@@ -54,11 +54,11 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$em->flush();
 
 		return new SourceResponse($entity, [
-			new SerializationInstruction(),
+			new SerializationInstruction($options[self::SerializationContext] ?? []),
 		]);
 	}
 
-	public function read(mixed $id, int $guardMode = self::GuardOnEntity): ResponseInterface
+	public function read(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
 	{
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('read');
@@ -77,11 +77,11 @@ final readonly class SymfonyRestOperations implements RestOperations
 		}
 
 		return new SourceResponse($entity, [
-			new SerializationInstruction(),
+			new SerializationInstruction($options[self::SerializationContext] ?? []),
 		]);
 	}
 
-	public function update(mixed $id, array $values, int $guardMode = self::GuardOnEntity): ResponseInterface
+	public function update(mixed $id, array $values, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
 	{
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('update');
@@ -106,11 +106,11 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$em->flush();
 
 		return new SourceResponse($entity, [
-			new SerializationInstruction(),
+			new SerializationInstruction($options[self::SerializationContext] ?? []),
 		]);
 	}
 
-	public function delete(mixed $id, int $guardMode = self::GuardOnEntity): ResponseInterface
+	public function delete(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
 	{
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('delete');
