@@ -4,6 +4,7 @@ namespace Shredio\Core\Bridge\Symfony\Test;
 
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
+use LogicException;
 use Shredio\Core\Test\Assert\AssertEntity;
 
 trait DatabaseEnvironment // @phpstan-ignore-line
@@ -20,6 +21,20 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 	{
 		/** @var ManagerRegistry */
 		return $this->getContainer()->get('doctrine');
+	}
+
+	protected function refetchRelationship(object &$entity): object
+	{
+		$em = $this->getEntityManager($entity::class);
+		$fetched = $em->find($entity::class, $em->getClassMetadata($entity::class)->getIdentifierValues($entity));
+
+		if (!$fetched) {
+			throw new LogicException('Entity not found.');
+		}
+
+		$entity = $fetched;
+
+		return $entity;
 	}
 
 	/**
