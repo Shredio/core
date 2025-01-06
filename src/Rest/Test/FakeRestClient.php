@@ -230,11 +230,11 @@ final class FakeRestClient
 		$parameters = $this->parameters;
 
 		$multipleIterator = new MultipleIterator(MultipleIterator::MIT_NEED_ALL);
-		$multipleIterator->attachIterator(new ArrayIterator($routeParameters), 'key');
-		$multipleIterator->attachIterator(new ArrayIterator($identifiers), 'value');
+		$multipleIterator->attachIterator(new ArrayIterator($routeParameters));
+		$multipleIterator->attachIterator(new ArrayIterator($identifiers));
 
 		foreach ($multipleIterator as $value) {
-			$parameters[$value['key']] = $value['value'];
+			$parameters[$value[0]] = $value[1];
 		}
 
 		return $parameters;
