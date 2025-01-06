@@ -64,6 +64,11 @@ final readonly class ForUnsigned implements Actor
 		return true;
 	}
 
+	public function isSame(): bool
+	{
+		return false;
+	}
+
 	public function copy(): static
 	{
 		return new self($this->author->copy());

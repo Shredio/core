@@ -72,6 +72,11 @@ trait ActorToTestTrait
 		return $copy;
 	}
 
+	public function isSame(): bool
+	{
+		return true;
+	}
+
 	public function toString(bool $author = true, bool $signed = true): string
 	{
 		$name = $this->getName();

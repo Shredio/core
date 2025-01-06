@@ -58,6 +58,11 @@ final class ForNone implements Actor
 		return false;
 	}
 
+	public function isSame(): bool
+	{
+		return false;
+	}
+
 	public function copy(): static
 	{
 		return $this;

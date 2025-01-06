@@ -23,6 +23,11 @@ interface Actor extends Stringable
 	public function hasAuthor(): bool;
 
 	/**
+	 * Checks if the author actor is the same as signed actor.
+	 */
+	public function isSame(): bool;
+
+	/**
 	 * @return string[]
 	 */
 	public function getRoles(): array;
