@@ -69,4 +69,20 @@ final readonly class ForUnsigned implements Actor
 		return new self($this->author->copy());
 	}
 
+	public function toString(bool $author = true, bool $signed = true): string
+	{
+		if ($author && $signed) {
+			return $this->author->toString(true, false) . ' and unsigned user';
+		} else if ($signed) {
+			return 'unsigned user';
+		} else {
+			return $this->author->toString(true, false);
+		}
+	}
+
+	public function __toString(): string
+	{
+		return 'no author and no signed user';
+	}
+
 }

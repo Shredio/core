@@ -63,4 +63,20 @@ final class ForNone implements Actor
 		return $this;
 	}
 
+	public function toString(bool $author = true, bool $signed = true): string
+	{
+		if ($author && $signed) {
+			return 'no author and unsigned user';
+		} elseif ($signed) {
+			return 'unsigned user';
+		} else {
+			return 'no author';
+		}
+	}
+
+	public function __toString(): string
+	{
+		return $this->toString();
+	}
+
 }

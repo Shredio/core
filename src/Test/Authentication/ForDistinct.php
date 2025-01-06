@@ -76,4 +76,20 @@ final readonly class ForDistinct implements Actor
 		);
 	}
 
+	public function toString(bool $author = true, bool $signed = true): string
+	{
+		if ($author && $signed) {
+			return $this->author->toString(true, false) . ' and ' . $this->signed->toString(false);
+		} else if ($signed) {
+			return $this->signed->toString(false);
+		} else {
+			return $this->author->toString(true, false);
+		}
+	}
+
+	public function __toString(): string
+	{
+		return $this->toString();
+	}
+
 }

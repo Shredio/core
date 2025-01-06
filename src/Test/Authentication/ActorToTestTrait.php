@@ -17,6 +17,8 @@ trait ActorToTestTrait
 	{
 	}
 
+	abstract protected function getName(): string;
+
 	public function getId(): AccountId
 	{
 		return $this->id ?? throw new LogicException('Account ID is not filled');
@@ -68,6 +70,24 @@ trait ActorToTestTrait
 		unset($copy->id);
 
 		return $copy;
+	}
+
+	public function toString(bool $author = true, bool $signed = true): string
+	{
+		$name = $this->getName();
+
+		if ($author && $signed) {
+			return sprintf('%s author and signed as %s', $name, $name);
+		} elseif ($signed) {
+			return sprintf('signed as %s', $name);
+		} else {
+			return sprintf('%s author', $name);
+		}
+	}
+
+	public function __toString(): string
+	{
+		return $this->toString();
 	}
 
 }

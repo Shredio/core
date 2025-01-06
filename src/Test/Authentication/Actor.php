@@ -4,11 +4,12 @@ namespace Shredio\Core\Test\Authentication;
 
 use Shredio\Core\Intl\Language;
 use Shredio\Core\Security\AccountId;
+use Stringable;
 
 /**
  * If object is a collection of actors, it must return values of author actor.
  */
-interface Actor
+interface Actor extends Stringable
 {
 
 	public function getId(): AccountId;
@@ -41,5 +42,9 @@ interface Actor
 	public function isFilled(): bool;
 
 	public function copy(): static;
+
+	public function toString(bool $author = true, bool $signed = true): string;
+
+	public function __toString(): string;
 
 }
