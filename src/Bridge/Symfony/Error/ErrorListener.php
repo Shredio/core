@@ -24,7 +24,7 @@ final class ErrorListener
 		private readonly AppEnvironment $appEnv,
 	)
 	{
-		$this->catchExceptions = !$this->appEnv->isDebugMode();
+		$this->catchExceptions = !$this->appEnv->isDebugMode() || $this->appEnv->isTesting();
 	}
 
 	public function onKernelException(ExceptionEvent $event): void
