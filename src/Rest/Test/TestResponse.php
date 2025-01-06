@@ -9,17 +9,23 @@ use Shredio\Core\Rest\Test\Assert\JsonArrayAssertions;
 use Shredio\Core\Rest\Test\Assert\JsonMultiArrayAssertions;
 use Shredio\Core\Test\Assert\HttpExpectation;
 
-final class TestResponse
+final readonly class TestResponse
 {
 
 	/** @var array<string, string> */
 	private array $cookies;
-	
+
 	public function __construct(
-		private readonly ResponseInterface $response, 
+		private ResponseInterface $response,
+		private FakeRestClient $client,
 	)
 	{
 		$this->cookies = $this->fetchCookies($this->response->getHeader('Set-Cookie'));
+	}
+
+	public function resend(): TestResponse
+	{
+		return $this->client->send();
 	}
 
 	public function getStatusCode(): int

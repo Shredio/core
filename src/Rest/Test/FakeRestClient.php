@@ -10,7 +10,9 @@ use Psr\Http\Message\StreamInterface;
 use Shredio\Core\Rest\Metadata\ControllerMetadata;
 use Shredio\Core\Rest\Metadata\EndpointMetadata;
 use Shredio\Core\Rest\Test\Attribute\TestControllerMethod;
+use Shredio\Core\Test\Assert\HttpExpectation;
 use Shredio\Core\Test\Authentication\Actor;
+use Shredio\Core\Test\TestData;
 
 final class FakeRestClient
 {
@@ -40,6 +42,8 @@ final class FakeRestClient
 	/** @var mixed[]|null  */
 	private ?array $identifiers = null;
 
+	private ?HttpExpectation $expectation = null;
+
 	/**
 	 * @param callable(FakeRequest $request): FakeResponse $request
 	 */
@@ -50,6 +54,26 @@ final class FakeRestClient
 	)
 	{
 		$this->request = $request;
+	}
+
+	public function with(?TestData $data): self
+	{
+		if ($data === null) {
+			$this->actor = null;
+			$this->expectation = null;
+		} else {
+			$this->withActor($data->actor);
+			$this->withExpectation($data->expectation);
+		}
+
+		return $this;
+	}
+
+	public function withExpectation(HttpExpectation $expectation): self
+	{
+		$this->expectation = $expectation;
+
+		return $this;
 	}
 
 	/**
@@ -151,7 +175,13 @@ final class FakeRestClient
 			$this->actor,
 		));
 
-		return new TestResponse($result->response);
+		$response = new TestResponse($result->response, $this);
+
+		if ($this->expectation) {
+			$response->expect($this->expectation);
+		}
+
+		return $response;
 	}
 
 	private function getHttpMethod(EndpointMetadata $endpoint): string

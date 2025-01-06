@@ -2,7 +2,6 @@
 
 namespace Shredio\Core\Bridge\Symfony\Test;
 
-use LogicException;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
@@ -11,7 +10,6 @@ use Shredio\Core\Rest\Test\FakeResponse;
 use Shredio\Core\Rest\Test\FakeRestClient;
 use Shredio\Core\Rest\Test\FakeRestClientFactory;
 use Shredio\Core\Security\InMemoryUser;
-use Shredio\Core\Test\Assert\HttpExpectation;
 use Shredio\Core\Test\Authentication\Actor;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\BrowserKit\Cookie;
@@ -25,19 +23,13 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 	#[Before]
 	protected function setUpHttpRest(): void
 	{
-		$instance = TestHelper::getInstance($this);
-		$instance->initialize();
+		TestHelperAccessor::get($this)->internals->initialize();
 	}
 
 	#[After]
 	protected function tearDownHttpRest(): void
 	{
-		foreach ($this->providedData() as $data) {
-			if ($data instanceof HttpExpectation && !$data->used) {
-				throw new LogicException('HttpExpectation was not used.');
-			}
-		}
-		TestHelper::getInstance($this)->reset();
+		TestHelperAccessor::get($this)->internals->finalize();
 	}
 
 	/**
@@ -54,12 +46,13 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 		$urlGenerator = $client->getKernel()->getContainer()->get('router');
 		$psr17Factory = new Psr17Factory();
 		$psrHttpFactory = new PsrHttpFactory($psr17Factory, $psr17Factory, $psr17Factory, $psr17Factory);
+		$testHelper = TestHelperAccessor::get($this);
 
-		$factory = new FakeRestClientFactory($this, function (FakeRequest $request) use ($client, $urlGenerator, $psrHttpFactory): FakeResponse {
+		$factory = new FakeRestClientFactory($this, function (FakeRequest $request) use ($client, $urlGenerator, $psrHttpFactory, $testHelper): FakeResponse {
 			$testBench = TestHelper::getTestBench($client->getKernel());
 
 			if ($actor = $request->actor) {
-				TestHelper::getInstance($this)->tryFillActor($actor);
+				$testHelper->internals->tryFillActor($actor);
 
 				if ($signedActor = $actor->getSignedActor()) {
 					$testBench->loginUser(new InMemoryUser($signedActor->getId()->toOriginal(), $signedActor->getRoles(), $signedActor->getLanguage()));
@@ -103,7 +96,7 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 
 		$httpClient = $factory->create($controllerAction);
 
-		if ($actor = TestHelper::getInstance($this)->getActorToSignIn()) {
+		if ($actor = $testHelper->internals->getActorToSignIn()) {
 			$httpClient->withActor($actor);
 		}
 
@@ -112,7 +105,7 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 
 	public function createActor(Actor $actor): Actor
 	{
-		return TestHelper::getInstance($this)->createActor($actor);
+		return TestHelperAccessor::get($this)->internals->createActor($actor);
 	}
 
 }
