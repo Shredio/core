@@ -3,13 +3,14 @@
 namespace Shredio\Core\Bridge\Symfony\Cache;
 
 use OutOfBoundsException;
-use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Shredio\Core\Cache\Cache;
 use Shredio\Core\Cache\CacheFactory;
 use Shredio\Core\Cache\ExtendCache;
 use Shredio\Core\Cache\SilentCache;
 use Shredio\Core\Reporter\ExceptionReporter;
+use Symfony\Component\Cache\Adapter\NullAdapter;
+use Symfony\Component\Cache\Psr16Cache;
 
 final readonly class SymfonyCacheFactory implements CacheFactory
 {
@@ -21,12 +22,21 @@ final readonly class SymfonyCacheFactory implements CacheFactory
 		private array $caches,
 		private ExceptionReporter $exceptionReporter,
 		private bool $scream = true,
+		private bool $enabled = true,
 	)
 	{
 	}
 
 	public function create(?string $name = null): Cache
 	{
+		if (!$this->enabled) {
+			if ($name && !isset($this->caches[$name])) {
+				throw new OutOfBoundsException(sprintf('Cache "%s" not found.', $name));
+			}
+
+			return new ExtendCache(new Psr16Cache(new NullAdapter()));
+		}
+
 		$storage = $this->getStorage($name);
 
 		if (!$this->scream) {

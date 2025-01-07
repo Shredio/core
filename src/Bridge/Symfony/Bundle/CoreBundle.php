@@ -14,7 +14,6 @@ use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryServices;
 use Shredio\Core\Bridge\Doctrine\TrackingPolicy\DeferredTrackingPolicy;
 use Shredio\Core\Bridge\Symfony\Bundle\Compiler\CoreCompilerPass;
 use Shredio\Core\Bridge\Symfony\Bundle\Compiler\PackagerCompilerPass;
-use Shredio\Core\Bridge\Symfony\Cache\SymfonyAdapterFactory;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyCacheFactory;
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
 use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
@@ -101,15 +100,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		EnvVars::require('APP_ENV', 'The environment the application is running in.');
 		EnvVars::require('APP_RUNTIME_ENV', 'The runtime environment the application is running in.');
-		EnvVars::require('CACHE_PREFIX', 'Prefix for cache keys used in key-value stores. e.g. myapp:');
-		EnvVars::require('CACHE_DSN', 'DSN for the default cache storage. e.g. redis://redis:6379');
 		EnvVars::require('AUTH_PASETO_SECRET', 'Secret key for PASETO tokens.');
-
-		$builder->prependExtensionConfig('framework', [
-			'cache' => [
-				'prefix_seed' => EnvVars::getString('CACHE_PREFIX'),
-			],
-		]);
 
 		if ($container->env() === 'test') {
 			$this->loadTest($container, $builder);
@@ -118,7 +109,6 @@ final class CoreBundle extends AbstractBundle
 		$this->loadRestRouter($container, $builder);
 		$this->loadBasics($container, $builder);
 		$this->loadCache($container, $builder, $config['cache'] ?? []);
-		$this->loadAppCache($container, $builder);
 		$this->loadSecurity($container, $builder);
 		$this->loadPsr7($container, $builder);
 		$this->loadDoctrine($container, $builder);
@@ -178,14 +168,14 @@ final class CoreBundle extends AbstractBundle
 			->children()
 				->arrayNode('cache')
 					->children()
-						->stringNode('namespace')->end()
+						->booleanNode('enabled')->defaultTrue()->end()
 						->arrayNode('aliases')
 							->useAttributeAsKey('name')
 							->normalizeKeys(false)
 							->arrayPrototype()
 								->children()
 									->stringNode('prefix')->cannotBeEmpty()->end()
-									->stringNode('storage')->end()
+									->stringNode('cache')->end()
 								->end()
 							->end()
 						->end() // aliases
@@ -208,11 +198,6 @@ final class CoreBundle extends AbstractBundle
 			->autoconfigure()
 			->autowire();
 
-		// Create CacheFactory
-		$resolveAlias = static function (string $name): string {
-			return EnvVars::getString('CACHE_PREFIX') . $name;
-		};
-
 		$aliases = $config['aliases'] ?? [];
 
 		if (!isset($aliases['default'])) {
@@ -229,7 +214,7 @@ final class CoreBundle extends AbstractBundle
 
 			$services->set($serviceName, CacheInterface::class)
 				->factory([self::class, 'createCache'])
-				->args([$cache, $resolveAlias($settings['prefix'])]);
+				->args([$cache, $settings['prefix']]);
 
 			$collection[$name] = new ReferenceConfigurator($serviceName);
 		}
@@ -237,23 +222,13 @@ final class CoreBundle extends AbstractBundle
 		$services->set(SymfonyCacheFactory::class)
 			->args([$collection])
 			->arg('$scream', param('kernel.debug'))
+			->arg('$enabled', $config['enabled'] ?? true)
 			->alias(CacheFactory::class, SymfonyCacheFactory::class);
 	}
 
 	public static function createCache(CacheItemPoolInterface $cache, string $prefix): PrefixCache
 	{
 		return new PrefixCache(new Psr16Cache($cache), $prefix);
-	}
-
-	private function loadAppCache(ContainerConfigurator $container, ContainerBuilder $builder): void
-	{
-		$services = $container->services();
-		$services->set('cache.app', AdapterInterface::class)
-			->autowire()
-			->autoconfigure()
-			->factory([SymfonyAdapterFactory::class, 'create'])
-			->args([param('env(string:CACHE_DSN)'), param('kernel.cache_dir')])
-			->arg('$marshaller', new ReferenceConfigurator('cache.default_marshaller'));
 	}
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
