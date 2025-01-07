@@ -14,7 +14,7 @@ final class ExtendCache extends DecorateCache implements Cache
 	 * @param callable(): TValue $fn
 	 * @return TValue
 	 */
-	public function grab(string $key, callable $fn, DateTimeInterface|DateInterval|int|null $ttl = null): mixed
+	public function fallback(string $key, callable $fn, DateTimeInterface|DateInterval|int|null $ttl = null): mixed
 	{
 		$value = $this->cache->get($key);
 
@@ -43,14 +43,14 @@ final class ExtendCache extends DecorateCache implements Cache
 	 * @param callable(mixed): boolean $validator
 	 * @return TValue
 	 */
-	public function grabTypeSafe(
+	public function validate(
 		string $key,
 		callable $fn,
 		callable $validator,
 		DateInterval|DateTimeInterface|int|null $ttl = null,
 	): mixed
 	{
-		$value = $this->grab($key, $fn, $ttl);
+		$value = $this->fallback($key, $fn, $ttl);
 
 		if (!$validator($value)) {
 			trigger_error(
@@ -59,7 +59,7 @@ final class ExtendCache extends DecorateCache implements Cache
 
 			$this->cache->delete($key);
 
-			return $this->grab($key, $fn, $ttl);
+			return $this->fallback($key, $fn, $ttl);
 		}
 
 		return $value;

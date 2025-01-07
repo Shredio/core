@@ -14,7 +14,7 @@ interface Cache extends CacheInterface
 	 * @param callable(): TValue $fn
 	 * @return TValue
 	 */
-	public function grab(string $key, callable $fn, DateTimeInterface|DateInterval|int|null $ttl = null): mixed;
+	public function fallback(string $key, callable $fn, DateTimeInterface|DateInterval|int|null $ttl = null): mixed;
 
 	/**
 	 * @template TValue
@@ -22,6 +22,6 @@ interface Cache extends CacheInterface
 	 * @param callable(mixed): boolean $validator
 	 * @return TValue
 	 */
-	public function grabTypeSafe(string $key, callable $fn, callable $validator, DateTimeInterface|DateInterval|int|null $ttl = null): mixed;
+	public function validate(string $key, callable $fn, callable $validator, DateTimeInterface|DateInterval|int|null $ttl = null): mixed;
 
 }
