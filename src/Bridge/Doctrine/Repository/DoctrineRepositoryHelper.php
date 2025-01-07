@@ -3,6 +3,7 @@
 namespace Shredio\Core\Bridge\Doctrine\Repository;
 
 use Doctrine\DBAL\ArrayParameterType;
+use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Types\Type;
@@ -14,6 +15,7 @@ use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 use Nette\Utils\FileSystem;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
+use Shredio\Core\Bridge\Doctrine\Platform\PlatformFamily;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseFieldResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabasePairsResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseResult;
@@ -298,9 +300,20 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	public function executeRawQueryFromFile(string $entityForConnection, string $fileName, array $parameters = [], array $types = []): Result
 	{
 		$connection = $this->getEntityManagerFor($entityForConnection)->getConnection();
-		$sql = FileSystem::read($fileName);
+		if (str_ends_with($fileName, '.php')) {
+			$sql = $this->loadSqlFile($fileName, PlatformFamily::fromPlatform($connection->getDatabasePlatform()));
+		} else {
+			$sql = FileSystem::read($fileName);
+		}
 
 		return $connection->executeQuery($sql, $parameters, $types);
+	}
+
+	private function loadSqlFile(string $script, PlatformFamily $platform): string
+	{
+		return (static function () use ($script, $platform): string {
+				return require $script;
+		})();
 	}
 
 	/**
