@@ -3,7 +3,6 @@
 namespace Shredio\Core\Bridge\Symfony\DI;
 
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
-use Shredio\Core\Environment\EnvVars;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ServicesConfigurator;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
@@ -15,14 +14,9 @@ final readonly class RepositoryRegister
 
 	private bool $stage;
 
-	private bool $cache;
-
 	public function __construct(ContainerConfigurator $container)
 	{
-		EnvVars::require('CACHE_REPOSITORY', 'Determines if the repository should be cached.');
-
 		$this->stage = SymfonyAppEnvironment::createFromEnv()->isStaging();
-		$this->cache = EnvVars::getBoolean('CACHE_REPOSITORY');
 		$this->services = $container->services();
 		$this->services->defaults()
 			->autowire();
@@ -40,15 +34,14 @@ final readonly class RepositoryRegister
 			$class = $stage;
 		}
 
-		$service = $this->services->set($class);
+		if ($cache) {
+			$this->services->set($class);
 
-		if ($cache && $this->cache) {
-			$service = $this->services->set($cache)
-				->decorate($class)
-				->args([service('.inner')]);
+			$this->services->set($interface, $cache)
+				->args([service($class)]);
+		} else {
+			$this->services->set($interface, $class);
 		}
-
-		$service->alias($interface, $class);
 	}
 
 }
