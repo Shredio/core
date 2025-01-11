@@ -3,6 +3,7 @@
 namespace Shredio\Core\Package;
 
 use InvalidArgumentException;
+use Nette\Utils\Json;
 use Nyholm\Psr7\Stream;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -39,7 +40,7 @@ final class Packager
 
 		return $item->response
 			->withHeader('Content-Type', 'application/json')
-			->withBody(Stream::create(json_encode($item->value, JSON_THROW_ON_ERROR)));
+			->withBody(Stream::create(Json::encode($item->value)));
 	}
 
 	/**
@@ -64,7 +65,7 @@ final class Packager
 
 		return $response
 			->withHeader('Content-Type', 'application/json')
-			->withBody(Stream::create(json_encode($sources, JSON_THROW_ON_ERROR)));
+			->withBody(Stream::create(Json::encode($item->value)));
 	}
 
 	/**
