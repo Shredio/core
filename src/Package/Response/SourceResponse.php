@@ -13,7 +13,7 @@ final class SourceResponse extends Response
 	 */
 	public function __construct(
 		private mixed $source,
-		private array $instructions,
+		private array $instructions = [],
 	)
 	{
 		parent::__construct();

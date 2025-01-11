@@ -14,7 +14,7 @@ final class SourcesResponse extends Response
 	 */
 	public function __construct(
 		private iterable $sources,
-		private array $instructions,
+		private array $instructions = [],
 	)
 	{
 		parent::__construct();
