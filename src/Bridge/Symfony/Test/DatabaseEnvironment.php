@@ -47,14 +47,17 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 			$em->persist($entity);
 			$em->flush();
 		} else if (($firstKey = array_key_first($entity)) !== null) {
-			$className = $entity[$firstKey]::class;
-			$em = $this->getEntityManager($className);
+			$managers = [];
 
 			foreach ($entity as $item) {
+				$className = $item::class;
+				$em = $managers[$className] ??= $this->getEntityManager($className);
 				$em->persist($item);
 			}
 
-			$em->flush();
+			foreach ($managers as $em) {
+				$em->flush();
+			}
 		}
 	}
 
