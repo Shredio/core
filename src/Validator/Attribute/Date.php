@@ -3,6 +3,7 @@
 namespace Shredio\Core\Validator\Attribute;
 
 use Attribute;
+use Shredio\Core\Validator\Validate\DateValidator;
 use Symfony\Component\Validator\Constraints as Symfony;
 
 #[Attribute(Attribute::TARGET_PROPERTY | Attribute::TARGET_METHOD | Attribute::IS_REPEATABLE)]
@@ -13,7 +14,7 @@ final class Date extends Symfony\Date
 
 	public function validatedBy(): string
 	{
-		return parent::class . 'Validator';
+		return DateValidator::class;
 	}
 
 }
