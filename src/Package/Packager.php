@@ -65,7 +65,7 @@ final class Packager
 
 		return $response
 			->withHeader('Content-Type', 'application/json')
-			->withBody(Stream::create(Json::encode($item->value)));
+			->withBody(Stream::create(Json::encode($sources)));
 	}
 
 	/**
