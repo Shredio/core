@@ -34,7 +34,7 @@ final readonly class RepositoryRegister
 			$class = $stage;
 		}
 
-		if ($cache) {
+		if ($cache && !$this->stage) {
 			$this->services->set($class);
 
 			$this->services->set($interface, $cache)
