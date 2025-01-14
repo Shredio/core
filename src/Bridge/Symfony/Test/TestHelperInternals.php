@@ -85,7 +85,7 @@ final class TestHelperInternals
 		$testData = $this->testData->getValue();
 
 		if ($testData) {
-			if (!$testData->expectation->used) {
+			if (!$testData->expectation->used && !$testData->hasGroup('BC')) {
 				throw new LogicException('HttpExpectation was not used.');
 			}
 		}
