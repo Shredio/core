@@ -23,6 +23,11 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 		return $this->getContainer()->get('doctrine');
 	}
 
+	/**
+	 * @template T of object
+	 * @param T $entity
+	 * @return T
+	 */
 	protected function refetchRelationship(object &$entity): object
 	{
 		$em = $this->getEntityManager($entity::class);
