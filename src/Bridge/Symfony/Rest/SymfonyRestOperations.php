@@ -20,11 +20,15 @@ use WebChemistry\Fixtures\Bridge\Doctrine\Key\DoctrineFixtureKey;
 use WebChemistry\Fixtures\Fixture;
 use WebChemistry\Fixtures\FixtureRegistry;
 
+/**
+ * @template T of object
+ * @implements RestOperations<T>
+ */
 final readonly class SymfonyRestOperations implements RestOperations
 {
 
 	/**
-	 * @param class-string $entityName
+	 * @param class-string<T> $entityName
 	 * @param mixed[] $defaultOptions
 	 */
 	public function __construct(
@@ -242,8 +246,13 @@ final readonly class SymfonyRestOperations implements RestOperations
 		return $this->registry->getManagerForClass($this->entityName);
 	}
 
+	/**
+	 * @param mixed[] $values
+	 * @return RestOperationBuilder<T>
+	 */
 	public function buildCreate(array $values): RestOperationBuilder
 	{
+		/** @var RestOperationBuilder<T> */
 		return new RestOperationBuilder(
 			'create',
 			fn (int $guardMode, array $options): ResponseInterface => $this->create($values, $guardMode, $options),
@@ -251,8 +260,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 		);
 	}
 
+	/**
+	 * @return RestOperationBuilder<T>
+	 */
 	public function buildRead(mixed $id): RestOperationBuilder
 	{
+		/** @var RestOperationBuilder<T> */
 		return new RestOperationBuilder(
 			'read',
 			fn (int $guardMode, array $options): ResponseInterface => $this->read($id, $guardMode, $options),
@@ -260,8 +273,13 @@ final readonly class SymfonyRestOperations implements RestOperations
 		);
 	}
 
+	/**
+	 * @param mixed[] $values
+	 * @return RestOperationBuilder<T>
+	 */
 	public function buildUpdate(mixed $id, array $values): RestOperationBuilder
 	{
+		/** @var RestOperationBuilder<T> */
 		return new RestOperationBuilder(
 			'update',
 			fn (int $guardMode, array $options): ResponseInterface => $this->update($id, $values, $guardMode, $options),
@@ -269,8 +287,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 		);
 	}
 
+	/**
+	 * @return RestOperationBuilder<T>
+	 */
 	public function buildDelete(mixed $id): RestOperationBuilder
 	{
+		/** @var RestOperationBuilder<T> */
 		return new RestOperationBuilder(
 			'delete',
 			fn (int $guardMode, array $options): ResponseInterface => $this->delete($id, $guardMode, $options),

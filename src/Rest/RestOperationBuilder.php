@@ -31,6 +31,9 @@ final class RestOperationBuilder
 		$this->runner = $runner;
 	}
 
+	/**
+	 * @return self<T>
+	 */
 	public function validationMode(bool $enabled = true): self
 	{
 		if (!in_array($this->type, ['create', 'update'], true)) {
@@ -44,6 +47,7 @@ final class RestOperationBuilder
 
 	/**
 	 * @param callable(T $entity, EntityManagerInterface $em): void $callback
+	 * @return self<T>
 	 */
 	public function beforeFlush(callable $callback): self
 	{
@@ -54,6 +58,7 @@ final class RestOperationBuilder
 
 	/**
 	 * @param mixed[] $context
+	 * @return self<T>
 	 */
 	public function setSerializationContext(array $context): self
 	{
@@ -62,6 +67,9 @@ final class RestOperationBuilder
 		return $this;
 	}
 
+	/**
+	 * @return self<T>
+	 */
 	public function setGuardMode(int $guardMode): self
 	{
 		$this->guardMode = $guardMode;

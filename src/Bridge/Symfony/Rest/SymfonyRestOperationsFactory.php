@@ -23,8 +23,14 @@ final readonly class SymfonyRestOperationsFactory implements RestOperationsFacto
 	{
 	}
 
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entityName
+	 * @return RestOperations<T>
+	 */
 	public function create(string $entityName, ?string $guardNamespace = null, array $defaultOptions = []): RestOperations
 	{
+		/** @var SymfonyRestOperations<T> */
 		return new SymfonyRestOperations(
 			$entityName,
 			$guardNamespace,
