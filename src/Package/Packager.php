@@ -98,6 +98,8 @@ final class Packager
 			$result = $processor->processItem($item, $instruction);
 
 			if ($result) {
+				$this->lookupTable[$instruction::class] = $processor;
+
 				return $result;
 			}
 		}
