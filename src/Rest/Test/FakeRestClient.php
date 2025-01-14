@@ -145,6 +145,18 @@ final class FakeRestClient
 		return $this;
 	}
 
+	public function withBody(string $body, ?string $contentType = null): self
+	{
+		$this->body = Stream::create($body);
+		$this->withHeader('Content-Length', $this->body->getSize());
+
+		if ($contentType !== null) {
+			$this->withHeader('Content-Type', $contentType);
+		}
+
+		return $this;
+	}
+
 	public function withJsonBody(mixed $data): self
 	{
 		if (!$data instanceof StreamInterface) {
