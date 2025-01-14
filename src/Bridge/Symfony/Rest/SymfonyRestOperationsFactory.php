@@ -23,7 +23,7 @@ final readonly class SymfonyRestOperationsFactory implements RestOperationsFacto
 	{
 	}
 
-	public function create(string $entityName, ?string $guardNamespace = null): RestOperations
+	public function create(string $entityName, ?string $guardNamespace = null, array $defaultOptions = []): RestOperations
 	{
 		return new SymfonyRestOperations(
 			$entityName,
@@ -33,6 +33,7 @@ final readonly class SymfonyRestOperationsFactory implements RestOperationsFacto
 			$this->appEnv,
 			$this->security,
 			$this->fixtureRegistry,
+			$defaultOptions,
 		);
 	}
 

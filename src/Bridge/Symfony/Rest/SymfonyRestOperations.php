@@ -11,6 +11,7 @@ use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Package\Instruction\SerializationInstruction;
 use Shredio\Core\Package\Response\SourceResponse;
+use Shredio\Core\Rest\RestOperationBuilder;
 use Shredio\Core\Rest\RestOperations;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -24,6 +25,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 	/**
 	 * @param class-string $entityName
+	 * @param mixed[] $defaultOptions
 	 */
 	public function __construct(
 		private string $entityName,
@@ -33,12 +35,17 @@ final readonly class SymfonyRestOperations implements RestOperations
 		private AppEnvironment $appEnv,
 		private Security $security,
 		private ?FixtureRegistry $fixtureRegistry,
+		private array $defaultOptions = [],
 	)
 	{
 	}
 
-	public function create(array $values, int $guardMode = self::GuardOnAttribute, array $options = []): ResponseInterface
+	public function create(array $values, ?int $guardMode = null, array $options = []): ResponseInterface
 	{
+		$options = array_merge($this->defaultOptions, $options);
+
+		$guardMode ??= $this->guardNamespace ? self::GuardOnAttribute : self::NoGuard;
+
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('create');
 		}
@@ -49,8 +56,17 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('create', $entity);
 		}
 
+		if ($options['validationMode'] ?? false) {
+			return new Response(204);
+		}
+
 		$em = $this->getEntityManager();
 		$em->persist($entity);
+
+		if ($callback = $options[self::BeforeFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
 		$em->flush();
 
 		return new SourceResponse($entity, [
@@ -58,8 +74,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 		]);
 	}
 
-	public function read(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
+	public function read(mixed $id, ?int $guardMode = null, array $options = []): ResponseInterface
 	{
+		$options = array_merge($this->defaultOptions, $options);
+
+		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
+
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('read');
 		}
@@ -81,8 +101,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 		]);
 	}
 
-	public function update(mixed $id, array $values, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
+	public function update(mixed $id, array $values, ?int $guardMode = null, array $options = []): ResponseInterface
 	{
+		$options = array_merge($this->defaultOptions, $options);
+
+		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
+
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('update');
 		}
@@ -101,8 +125,17 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$entity = $this->entityFactory->update($entity, $values);
 
+		if ($options['validationMode'] ?? false) {
+			return new Response(204);
+		}
+
 		$em = $this->getEntityManager();
 		$em->persist($entity);
+
+		if ($callback = $options[self::BeforeFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
 		$em->flush();
 
 		return new SourceResponse($entity, [
@@ -110,8 +143,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 		]);
 	}
 
-	public function delete(mixed $id, int $guardMode = self::GuardOnEntity, array $options = []): ResponseInterface
+	public function delete(mixed $id, ?int $guardMode = null, array $options = []): ResponseInterface
 	{
+		$options = array_merge($this->defaultOptions, $options);
+
+		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
+
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('delete');
 		}
@@ -130,6 +167,11 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$em = $this->getEntityManager();
 		$em->remove($entity);
+
+		if ($callback = $options[self::BeforeFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
 		$em->flush();
 
 		return new Response(204);
@@ -198,6 +240,42 @@ final readonly class SymfonyRestOperations implements RestOperations
 	private function getEntityManager(): EntityManagerInterface
 	{
 		return $this->registry->getManagerForClass($this->entityName);
+	}
+
+	public function buildCreate(array $values): RestOperationBuilder
+	{
+		return new RestOperationBuilder(
+			'create',
+			fn (int $guardMode, array $options): ResponseInterface => $this->create($values, $guardMode, $options),
+			$this->guardNamespace ? self::GuardOnAttribute : self::NoGuard,
+		);
+	}
+
+	public function buildRead(mixed $id): RestOperationBuilder
+	{
+		return new RestOperationBuilder(
+			'read',
+			fn (int $guardMode, array $options): ResponseInterface => $this->read($id, $guardMode, $options),
+			$this->guardNamespace ? self::GuardOnEntity : self::NoGuard,
+		);
+	}
+
+	public function buildUpdate(mixed $id, array $values): RestOperationBuilder
+	{
+		return new RestOperationBuilder(
+			'update',
+			fn (int $guardMode, array $options): ResponseInterface => $this->update($id, $values, $guardMode, $options),
+			$this->guardNamespace ? self::GuardOnEntity : self::NoGuard,
+		);
+	}
+
+	public function buildDelete(mixed $id): RestOperationBuilder
+	{
+		return new RestOperationBuilder(
+			'delete',
+			fn (int $guardMode, array $options): ResponseInterface => $this->delete($id, $guardMode, $options),
+			$this->guardNamespace ? self::GuardOnEntity : self::NoGuard,
+		);
 	}
 
 }

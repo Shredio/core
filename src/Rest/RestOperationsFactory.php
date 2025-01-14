@@ -6,8 +6,11 @@ interface RestOperationsFactory
 {
 
 	/**
-	 * @param class-string $entityName
+	 * @template T of object
+	 * @param class-string<T> $entityName
+	 * @param mixed[] $defaultOptions
+	 * @return RestOperations<T>
 	 */
-	public function create(string $entityName, ?string $guardNamespace = null): RestOperations;
+	public function create(string $entityName, ?string $guardNamespace = null, array $defaultOptions = []): RestOperations;
 
 }
