@@ -5,7 +5,7 @@ namespace Shredio\Core\Bridge\Symfony\Bundle;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\SimpleCache\CacheInterface;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
-use Shredio\Core\Bridge\Doctrine\Pagination\DoctrinePaginationFactory;
+use Shredio\Core\Bridge\Doctrine\Pagination\DoctrinePagination;
 use Shredio\Core\Bridge\Doctrine\Query\DefaultQueryBuilderFactory;
 use Shredio\Core\Bridge\Doctrine\Query\QueryBuilderFactory;
 use Shredio\Core\Bridge\Doctrine\Rapid\DoctrineEntityRapidOperationFactory;
@@ -20,6 +20,7 @@ use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Shredio\Core\Bridge\Symfony\Extension\SymfonyExtensionHelper;
 use Shredio\Core\Bridge\Symfony\Http\PsrRequestResolver;
 use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
+use Shredio\Core\Bridge\Symfony\Pagination\SymfonyPaginationLinkGenerator;
 use Shredio\Core\Bridge\Symfony\Reporter\SymfonyExceptionReporter;
 use Shredio\Core\Bridge\Symfony\Rest\RestLoader;
 use Shredio\Core\Bridge\Symfony\Rest\SymfonyRestOperationsFactory;
@@ -57,7 +58,8 @@ use Shredio\Core\Package\Packager;
 use Shredio\Core\Package\Processor\FormattingInstructionProcessor;
 use Shredio\Core\Package\Processor\InstructionProcessor;
 use Shredio\Core\Package\Processor\SerializationInstructionProcessor;
-use Shredio\Core\Pagination\PaginationFactory;
+use Shredio\Core\Pagination\Pagination;
+use Shredio\Core\Pagination\PaginationLinkGenerator;
 use Shredio\Core\Path\Directories;
 use Shredio\Core\Payload\ErrorsPayloadProcessor;
 use Shredio\Core\Reporter\ExceptionReporter;
@@ -71,12 +73,12 @@ use Shredio\Core\Security\AuthTokenProvider;
 use Shredio\Core\Security\PasetoProvider;
 use Shredio\Core\Security\TokenProvider;
 use Shredio\Core\Security\UserContext;
+use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
 use Symfony\Bridge\PsrHttpMessage\EventListener\PsrResponseListener;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -281,8 +283,9 @@ final class CoreBundle extends AbstractBundle
 
 		$this->addInterfaceService($services, EntityRapidOperationFactory::class, DoctrineEntityRapidOperationFactory::class);
 		$this->addInterfaceService($services, QueryBuilderFactory::class, DefaultQueryBuilderFactory::class);
-		$this->addInterfaceService($services, PaginationFactory::class, DoctrinePaginationFactory::class);
 		$this->addInterfaceService($services, EntityFactory::class, SymfonyEntityFactory::class);
+		$this->addInterfaceService($services, PaginationLinkGenerator::class, SymfonyPaginationLinkGenerator::class);
+		$this->addInterfaceService($services, Pagination::class, DoctrinePagination::class);
 	}
 
 	private function loadPackager(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -353,6 +356,9 @@ final class CoreBundle extends AbstractBundle
 		$services->set(KeepObjectNormalizer::class)
 			->autowire()
 			->tag('serializer.normalizer');
+
+		$services->set(ObjectNormalizerServices::class)
+			->autowire();
 	}
 
 	private function loadTest(ContainerConfigurator $container, ContainerBuilder $builder): void
