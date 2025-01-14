@@ -4,4 +4,3 @@ parameters:
 		- src
 	excludePaths:
 		- src/Bridge/Symfony/Http/LazyServerRequest.php
-		- src/Serializer/Trait/SymfonyObjectNormalizerTrait.php
