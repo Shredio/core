@@ -19,12 +19,15 @@ final class ErrorListener
 
 	public bool $catchExceptions;
 
+	private bool $staging;
+
 	public function __construct(
 		private readonly ErrorsPayloadProcessor $errorsPayloadProcessor,
 		private readonly AppEnvironment $appEnv,
 	)
 	{
 		$this->catchExceptions = !$this->appEnv->isDebugMode() || $this->appEnv->isTesting();
+		$this->staging = $this->appEnv->isStaging();
 	}
 
 	public function onKernelException(ExceptionEvent $event): void
@@ -44,6 +47,11 @@ final class ErrorListener
 		} else if ($throwable instanceof SymfonyHttpException) {
 			$event->stopPropagation();
 			$event->setResponse($this->createResponseForSymfonyHttpException($throwable));
+		} else if ($this->staging) {
+			fwrite(STDOUT, (string) $throwable);
+
+			$event->stopPropagation();
+			$event->setResponse(new Response((string) $throwable, 500));
 		}
 	}
 
