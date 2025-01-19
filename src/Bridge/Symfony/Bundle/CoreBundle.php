@@ -74,6 +74,8 @@ use Shredio\Core\Security\PasetoProvider;
 use Shredio\Core\Security\TokenProvider;
 use Shredio\Core\Security\UserContext;
 use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
+use Shredio\Messenger\Command\ConsumeCronMessagesCommand;
+use Shredio\Messenger\Middleware\DiscardableMessageMiddleware;
 use Symfony\Bridge\PsrHttpMessage\EventListener\PsrResponseListener;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
@@ -86,6 +88,7 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
 use Symfony\Component\HttpKernel\Bundle\AbstractBundle;
 use Symfony\Component\Serializer\Serializer;
+use function Symfony\Component\DependencyInjection\Loader\Configurator\abstract_arg;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\param;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\tagged_iterator;
@@ -119,6 +122,7 @@ final class CoreBundle extends AbstractBundle
 		$this->loadSerializer($container, $builder);
 		$this->loadHttpCache($container, $builder);
 		$this->loadConsole($container, $builder);
+		$this->loadMessenger($container, $builder);
 	}
 
 	private function loadBasics(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -167,26 +171,26 @@ final class CoreBundle extends AbstractBundle
 	public function configure(DefinitionConfigurator $definition): void
 	{
 		$definition->rootNode() // @phpstan-ignore-line
+		->children()
+			->arrayNode('cache')
 			->children()
-				->arrayNode('cache')
-					->children()
-						->booleanNode('enabled')->defaultTrue()->end()
-						->arrayNode('aliases')
-							->useAttributeAsKey('name')
-							->normalizeKeys(false)
-							->arrayPrototype()
-								->children()
-									->stringNode('prefix')->cannotBeEmpty()->end()
-									->stringNode('cache')->end()
-								->end()
-							->end()
-						->end() // aliases
-					->end()
-				->end() // cache
-				->arrayNode('middlewares')
-					->stringPrototype()
-					->end()
-				->end()
+			->booleanNode('enabled')->defaultTrue()->end()
+			->arrayNode('aliases')
+			->useAttributeAsKey('name')
+			->normalizeKeys(false)
+			->arrayPrototype()
+			->children()
+			->stringNode('prefix')->cannotBeEmpty()->end()
+			->stringNode('cache')->end()
+			->end()
+			->end()
+			->end() // aliases
+			->end()
+			->end() // cache
+			->arrayNode('middlewares')
+			->stringPrototype()
+			->end()
+			->end()
 			->end();
 	}
 
@@ -405,6 +409,27 @@ final class CoreBundle extends AbstractBundle
 		$services->set(AuthTokenCommand::class)
 			->autowire()
 			->tag('console.command');
+	}
+
+	private function loadMessenger(ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		$services = $container->services();
+
+		if (class_exists(DiscardableMessageMiddleware::class)) {
+			$services->set(DiscardableMessageMiddleware::class)
+				->autowire();
+		}
+
+		$services->set('core.console.consume-cron-messages', ConsumeCronMessagesCommand::class)
+			->tag('console.command')
+			->args([
+				service('messenger.receiver_locator'),
+				abstract_arg('Routable message bus'),
+				service('event_dispatcher'),
+				service('logger')->nullOnInvalid(),
+				service('messenger.rate_limiter_locator')->nullOnInvalid(),
+				[], // Receiver names
+			]);
 	}
 
 }

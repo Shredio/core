@@ -5,8 +5,12 @@ namespace Shredio\Core\Bridge\Symfony\Bundle\Compiler;
 use Shredio\Core\Bridge\Doctrine\Type\AccountIdType;
 use Shredio\Core\Bridge\Doctrine\Type\DateImmutablePrimaryType;
 use Shredio\Core\Bridge\Doctrine\Type\SymbolType;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Exception\RuntimeException;
+use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\Messenger\Transport\Receiver\ReceiverInterface;
 
 final class CoreCompilerPass implements CompilerPassInterface
 {
@@ -20,6 +24,40 @@ final class CoreCompilerPass implements CompilerPassInterface
 		}
 
 		$this->processDoctrineTypes($container);
+		$this->processMessenger($container);
+	}
+
+	private function processMessenger(ContainerBuilder $container): void
+	{
+		$receiverMapping = [];
+
+		foreach ($container->findTaggedServiceIds('messenger.receiver') as $id => $tags) {
+			$receiverClass = $this->getServiceClass($container, $id);
+			if (!is_subclass_of($receiverClass, ReceiverInterface::class)) {
+				throw new RuntimeException(\sprintf('Invalid receiver "%s": class "%s" must implement interface "%s".', $id, $receiverClass, ReceiverInterface::class));
+			}
+
+			$receiverMapping[$id] = new Reference($id);
+
+			foreach ($tags as $tag) {
+				if (isset($tag['alias'])) {
+					$receiverMapping[$tag['alias']] = $receiverMapping[$id];
+				}
+			}
+		}
+
+		$receiverNames = [];
+		foreach ($receiverMapping as $name => $reference) {
+			$receiverNames[(string) $reference] = $name;
+		}
+
+		$consumeCommandDefinition = $container->getDefinition('core.console.consume-cron-messages');
+
+		if ($container->hasDefinition('messenger.routable_message_bus')) {
+			$consumeCommandDefinition->replaceArgument(1, new Reference('messenger.routable_message_bus'));
+		}
+
+		$consumeCommandDefinition->replaceArgument(5, array_values($receiverNames));
 	}
 
 	private function processDoctrineTypes(ContainerBuilder $container): void
@@ -44,6 +82,27 @@ final class CoreCompilerPass implements CompilerPassInterface
 		}
 
 		$container->setParameter('doctrine.dbal.connection_factory.types', $typeDefinition);
+	}
+
+	private function getServiceClass(ContainerBuilder $container, string $serviceId): string
+	{
+		while (true) {
+			$definition = $container->findDefinition($serviceId);
+
+			if (!$definition->getClass() && $definition instanceof ChildDefinition) {
+				$serviceId = $definition->getParent();
+
+				continue;
+			}
+
+			$class = $definition->getClass();
+
+			if ($class === null) {
+				throw new RuntimeException(sprintf('Service "%s" is missing a class.', $serviceId));
+			}
+
+			return $class;
+		}
 	}
 
 }
