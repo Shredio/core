@@ -5,6 +5,7 @@ namespace Shredio\Core\Bridge\Symfony\Bundle\Compiler;
 use Shredio\Core\Bridge\Doctrine\Type\AccountIdType;
 use Shredio\Core\Bridge\Doctrine\Type\DateImmutablePrimaryType;
 use Shredio\Core\Bridge\Doctrine\Type\SymbolType;
+use Shredio\Messenger\Middleware\DiscardableMessageMiddleware;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -29,7 +30,30 @@ final class CoreCompilerPass implements CompilerPassInterface
 
 	private function processMessenger(ContainerBuilder $container): void
 	{
-		$receiverMapping = [];
+		if (!class_exists(DiscardableMessageMiddleware::class)) {
+			return;
+		}
+
+		$services = [
+			'event.bus' => true,
+			'query.bus' => true,
+			'command.bus' => true,
+		];
+
+		foreach ($container->findTaggedServiceIds('messenger.bus') as $id => $tags) {
+			if (!isset($services[$id])) {
+				throw new RuntimeException(\sprintf('Invalid bus "%s": only "event.bus", "command.bus" and "query.bus" are allowed.', $id));
+			}
+
+			$container->getDefinition(sprintf('core.messenger.%s', $id))
+				->setArgument('$bus', new Reference($id));
+
+			unset($services[$id]);
+		}
+
+		foreach ($services as $id => $_) {
+			$container->removeDefinition(sprintf('core.messenger.%s', $id));
+		}
 
 		foreach ($container->findTaggedServiceIds('messenger.receiver') as $id => $tags) {
 			$receiverClass = $this->getServiceClass($container, $id);

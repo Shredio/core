@@ -74,6 +74,10 @@ use Shredio\Core\Security\PasetoProvider;
 use Shredio\Core\Security\TokenProvider;
 use Shredio\Core\Security\UserContext;
 use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
+use Shredio\Messenger\Bus\CommandBus;
+use Shredio\Messenger\Bus\EventBus;
+use Shredio\Messenger\Bus\MessengerBusLocator;
+use Shredio\Messenger\Bus\QueryBus;
 use Shredio\Messenger\Command\ConsumeCronMessagesCommand;
 use Shredio\Messenger\Middleware\DiscardableMessageMiddleware;
 use Symfony\Bridge\PsrHttpMessage\EventListener\PsrResponseListener;
@@ -171,26 +175,26 @@ final class CoreBundle extends AbstractBundle
 	public function configure(DefinitionConfigurator $definition): void
 	{
 		$definition->rootNode() // @phpstan-ignore-line
-		->children()
-			->arrayNode('cache')
 			->children()
-			->booleanNode('enabled')->defaultTrue()->end()
-			->arrayNode('aliases')
-			->useAttributeAsKey('name')
-			->normalizeKeys(false)
-			->arrayPrototype()
-			->children()
-			->stringNode('prefix')->cannotBeEmpty()->end()
-			->stringNode('cache')->end()
-			->end()
-			->end()
-			->end() // aliases
-			->end()
-			->end() // cache
-			->arrayNode('middlewares')
-			->stringPrototype()
-			->end()
-			->end()
+				->arrayNode('cache')
+					->children()
+						->booleanNode('enabled')->defaultTrue()->end()
+						->arrayNode('aliases')
+							->useAttributeAsKey('name')
+							->normalizeKeys(false)
+							->arrayPrototype()
+								->children()
+									->stringNode('prefix')->cannotBeEmpty()->end()
+									->stringNode('cache')->end()
+								->end()
+							->end()
+						->end() // aliases
+					->end()
+				->end() // cache
+				->arrayNode('middlewares')
+					->stringPrototype()
+					->end()
+				->end()
 			->end();
 	}
 
@@ -415,10 +419,31 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		if (class_exists(DiscardableMessageMiddleware::class)) {
-			$services->set(DiscardableMessageMiddleware::class)
-				->autowire();
+		if (!class_exists(DiscardableMessageMiddleware::class)) {
+			return;
 		}
+
+		$services->set(DiscardableMessageMiddleware::class)
+			->autowire();
+
+		$services->set('core.messenger.command.bus', CommandBus::class)
+			->args([abstract_arg('Command bus')])
+			->alias(CommandBus::class, 'core.messenger.command.bus');
+
+		$services->set('core.messenger.query.bus', QueryBus::class)
+			->args([abstract_arg('Query bus')])
+			->alias(QueryBus::class, 'core.messenger.query.bus');
+
+		$services->set('core.messenger.event.bus', EventBus::class)
+			->args([abstract_arg('Event bus')])
+			->alias(EventBus::class, 'core.messenger.event.bus');
+
+		$services->set(MessengerBusLocator::class)
+			->args([
+				service('core.messenger.command.bus')->nullOnInvalid(),
+				service('core.messenger.query.bus')->nullOnInvalid(),
+				service('core.messenger.event.bus')->nullOnInvalid(),
+			]);
 
 		$services->set('core.console.consume-cron-messages', ConsumeCronMessagesCommand::class)
 			->tag('console.command')
