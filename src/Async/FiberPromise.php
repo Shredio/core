@@ -5,7 +5,7 @@ namespace Shredio\Core\Async;
 use Fiber;
 
 /**
- * @template T
+ * @template-covariant T
  * @implements Promise<T>
  */
 final class FiberPromise implements Promise

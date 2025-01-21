@@ -3,7 +3,7 @@
 namespace Shredio\Core\Async;
 
 /**
- * @template T
+ * @template-covariant T
  * @implements Promise<T>
  */
 final readonly class ResolvedPromise implements Promise

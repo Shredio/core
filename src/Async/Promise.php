@@ -3,7 +3,7 @@
 namespace Shredio\Core\Async;
 
 /**
- * @template T
+ * @template-covariant T
  */
 interface Promise
 {
