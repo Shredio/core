@@ -2,12 +2,14 @@
 
 namespace Shredio\Core\Bridge\Symfony\Error;
 
+use ReflectionClass;
 use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Exception\HttpException;
 use Shredio\Core\Payload\ErrorsPayloadProcessor;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\Exception\RequestExceptionInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpKernel\Attribute\WithHttpStatus;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpException as SymfonyHttpException;
 use Symfony\Component\HttpKernel\KernelEvents;
@@ -47,6 +49,9 @@ final class ErrorListener
 		} else if ($throwable instanceof SymfonyHttpException) {
 			$event->stopPropagation();
 			$event->setResponse($this->createResponseForSymfonyHttpException($throwable));
+		} else if ($status = $this->getHttpStatusFromAttribute($throwable)) {
+			$event->stopPropagation();
+			$event->setResponse(new Response(status: $status->statusCode, headers: $status->headers));
 		} else if ($this->staging) {
 			fwrite(STDOUT, (string) $throwable);
 
@@ -89,6 +94,13 @@ final class ErrorListener
 		}
 
 		return new Response($throwable->getMessage(), $throwable->getStatusCode(), $throwable->getHeaders());
+	}
+
+	private function getHttpStatusFromAttribute(Throwable $throwable): ?WithHttpStatus
+	{
+		$reflection = new ReflectionClass($throwable);
+
+		return ($reflection->getAttributes(WithHttpStatus::class)[0] ?? null)?->newInstance();
 	}
 
 }
