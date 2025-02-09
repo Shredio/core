@@ -23,13 +23,7 @@ final readonly class DatabaseFieldResult
 	 */
 	public function toArray(): array
 	{
-		$values = [];
-
-		foreach ($this->yield() as $item) {
-			$values[] = $item[$this->field];
-		}
-
-		return $values;
+		return iterator_to_array($this->yieldArray());
 	}
 
 	/**
@@ -37,13 +31,7 @@ final readonly class DatabaseFieldResult
 	 */
 	public function toScalarArray(): array
 	{
-		$values = [];
-
-		foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_SCALAR) as $item) {
-			$values[] = $item[$this->field];
-		}
-
-		return $values;
+		return iterator_to_array($this->yieldScalar());
 	}
 
 	/**
@@ -51,21 +39,27 @@ final readonly class DatabaseFieldResult
 	 */
 	public function createStringSet(): Set
 	{
-		$set = Set::createString();
-
-		foreach ($this->yield() as $item) {
-			$set->add($item[$this->field]);
-		}
-
-		return $set;
+		return Set::createString($this->yieldScalar());
 	}
 
 	/**
 	 * @return mixed[]
 	 */
-	public function yield(): iterable
+	public function yieldArray(): iterable
 	{
-		return $this->query->toIterable(hydrationMode: Query::HYDRATE_ARRAY);
+		foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_ARRAY) as $value) {
+			yield $value[$this->field];
+		}
+	}
+
+	/**
+	 * @return mixed[]
+	 */
+	public function yieldScalar(): iterable
+	{
+		foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_SCALAR) as $value) {
+			yield $value[$this->field];
+		}
 	}
 
 }
