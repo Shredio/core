@@ -45,4 +45,14 @@ trait KernelEnvironment // @phpstan-ignore-line
 		return TestHelper::getTestBench($this->getKernel());
 	}
 
+	/**
+	 * @template T of object
+	 * @param class-string<T> $className
+	 * @return T
+	 */
+	protected function getService(string $className): object
+	{
+		return $this->getContainer()->get($className);
+	}
+
 }
