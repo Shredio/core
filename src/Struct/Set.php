@@ -16,10 +16,10 @@ abstract class Set implements IteratorAggregate, Countable
 
 	/**
 	 * @template TValue
-	 * @param TValue[] $values
+	 * @param iterable<TValue> $values
 	 * @return self<TValue>
 	 */
-	public static function create(array $values = []): self
+	public static function create(iterable $values = []): self
 	{
 		if (self::usePecl()) {
 			return new PeclSet($values);
@@ -35,10 +35,10 @@ abstract class Set implements IteratorAggregate, Countable
 
 	/**
 	 * @template TValue of string|int
-	 * @param TValue[] $values
+	 * @param iterable<TValue> $values
 	 * @return self<TValue>
 	 */
-	public static function createStringOrInt(array $values = []): self
+	public static function createStringOrInt(iterable $values = []): self
 	{
 		if (self::usePecl()) {
 			return new PeclSet($values);
@@ -48,10 +48,10 @@ abstract class Set implements IteratorAggregate, Countable
 	}
 
 	/**
-	 * @param string[] $values
+	 * @param iterable<string> $values
 	 * @return self<string>
 	 */
-	public static function createString(array $values = []): self
+	public static function createString(iterable $values = []): self
 	{
 		if (self::usePecl()) {
 			return new PeclSet($values);

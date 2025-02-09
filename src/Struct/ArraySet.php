@@ -15,9 +15,9 @@ final class ArraySet extends Set
 	private array $values = [];
 
 	/**
-	 * @param array<T> $values
+	 * @param iterable<T> $values
 	 */
-	public function __construct(array $values)
+	public function __construct(iterable $values)
 	{
 		foreach ($values as $value) {
 			$this->add($value);

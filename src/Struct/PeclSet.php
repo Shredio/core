@@ -16,9 +16,9 @@ final class PeclSet extends Set
 	private \Ds\Set $set;
 
 	/**
-	 * @param T[] $values
+	 * @param iterable<T> $values
 	 */
-	public function __construct(array $values)
+	public function __construct(iterable $values)
 	{
 		$this->set = new \Ds\Set($values);
 	}
