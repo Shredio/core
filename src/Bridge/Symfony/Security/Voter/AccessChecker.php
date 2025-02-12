@@ -9,6 +9,11 @@ use Shredio\Voter\Service\VoterService;
 final class AccessChecker extends VoterService
 {
 
+	public function isSuperAdmin(): bool
+	{
+		return $this->isGranted('ROLE_FOUNDER');
+	}
+
 	public function isGranted(string $attribute, ?object $object = null): bool
 	{
 		return $this->context->accessDecisionManager->decide($this->context->token, [$attribute], $object);
