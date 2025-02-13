@@ -5,6 +5,7 @@ namespace Shredio\Core\Cache;
 use DateInterval;
 use DateTime;
 use DateTimeInterface;
+use Generator;
 
 final class ExtendCache extends DecorateCache implements Cache
 {
@@ -26,6 +27,10 @@ final class ExtendCache extends DecorateCache implements Cache
 
 		if ($value === null) {
 			return $value;
+		}
+
+		if ($value instanceof Generator) {
+			$value = iterator_to_array($value);
 		}
 
 		if ($ttl instanceof DateTimeInterface) {
