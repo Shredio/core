@@ -75,8 +75,8 @@ use Shredio\Core\Security\TokenProvider;
 use Shredio\Core\Security\UserContext;
 use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
 use Shredio\Messenger\Bus\CommandBus;
+use Shredio\Messenger\Bus\DefaultMessengerBusAccessor;
 use Shredio\Messenger\Bus\EventBus;
-use Shredio\Messenger\Bus\MessengerBusLocator;
 use Shredio\Messenger\Bus\QueryBus;
 use Shredio\Messenger\Command\ConsumeCronMessagesCommand;
 use Shredio\Messenger\Middleware\DiscardableMessageMiddleware;
@@ -438,7 +438,7 @@ final class CoreBundle extends AbstractBundle
 			->args([abstract_arg('Event bus')])
 			->alias(EventBus::class, 'core.messenger.event.bus');
 
-		$services->set(MessengerBusLocator::class)
+		$services->set(DefaultMessengerBusAccessor::class)
 			->args([
 				service('core.messenger.command.bus')->nullOnInvalid(),
 				service('core.messenger.query.bus')->nullOnInvalid(),

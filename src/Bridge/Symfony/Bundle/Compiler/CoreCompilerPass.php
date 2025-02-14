@@ -55,6 +55,8 @@ final class CoreCompilerPass implements CompilerPassInterface
 			$container->removeDefinition(sprintf('core.messenger.%s', $id));
 		}
 
+		$receiverMapping = [];
+
 		foreach ($container->findTaggedServiceIds('messenger.receiver') as $id => $tags) {
 			$receiverClass = $this->getServiceClass($container, $id);
 			if (!is_subclass_of($receiverClass, ReceiverInterface::class)) {

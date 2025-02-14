@@ -39,7 +39,7 @@ final class ExtendCache extends DecorateCache implements Cache
 
 		$this->cache->set($key, $value, $ttl);
 
-		return $value;
+		return $value; // @phpstan-ignore return.type
 	}
 
 	/**
