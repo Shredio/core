@@ -2,12 +2,6 @@
 
 namespace Tests\Doctrine;
 
-use Doctrine\DBAL\Connection;
-use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
-use Doctrine\DBAL\Platforms\SQLitePlatform;
-use Doctrine\ORM\EntityManager;
-use Doctrine\ORM\ORMSetup;
 use InvalidArgumentException;
 use PHPUnit\Framework\Attributes\TestWith;
 use PHPUnit\Framework\TestCase;
@@ -18,24 +12,7 @@ use Tests\Doctrine\entity\Post;
 final class RapidInserterTest extends TestCase
 {
 
-	private function createEntityManager(string $platform = 'mysql'): EntityManager
-	{
-		$configuration = ORMSetup::createAttributeMetadataConfiguration([__DIR__ . '/entity'], true);
-		$connection = $this->createStub(Connection::class);
-		$connection->method('quote')->willReturnCallback(function (string $value): string {
-			return sprintf("'%s'", $value);
-		});
-
-		if ($platform === 'sqlite') {
-			$platform = $this->createStub(SQLitePlatform::class);
-		} else {
-			$platform = $this->createStub(MySQLPlatform::class);
-		}
-
-		$connection->method('getDatabasePlatform')->willReturnCallback(fn () => $platform);
-
-		return new EntityManager($connection, $configuration);
-	}
+	use RapidEnvironment;
 
 	#[TestWith(['mysql'])]
 	#[TestWith(['sqlite'])]
