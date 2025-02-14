@@ -4,6 +4,7 @@ namespace Shredio\Core\Database\Rapid;
 
 use InvalidArgumentException;
 use LogicException;
+use Shredio\Core\Database\Rapid\Platform\RapidOperationPlatform;
 
 abstract class BaseRapidInserter implements RapidInserter
 {
@@ -28,10 +29,12 @@ abstract class BaseRapidInserter implements RapidInserter
 
 	/**
 	 * @param mixed[] $options
+	 * @param list<string> $idColumns
 	 */
 	public function __construct(
 		string $table,
 		private readonly OperationEscaper $escaper,
+		private array $idColumns,
 		array $options = [],
 	)
 	{
@@ -39,6 +42,8 @@ abstract class BaseRapidInserter implements RapidInserter
 		$this->columnsToUpdate = $options[self::ColumnsToUpdate] ?? [];
 		$this->mode = $options[self::Mode] ?? self::ModeNormal;
 	}
+
+	abstract protected function getPlatform(): RapidOperationPlatform;
 
 	public function addRaw(array $values): static
 	{
@@ -110,22 +115,33 @@ abstract class BaseRapidInserter implements RapidInserter
 				$columns = $this->filterFieldsToUpdate($this->required);
 			}
 
-			return sprintf(
-				' ON DUPLICATE KEY UPDATE %s',
-				implode(', ', array_map(function ($column): string {
-					$escaped = $this->resolveField($column);
-
-					return $escaped . ' = VALUES(' . $escaped . ')';
-				}, $columns))
+			$columns = array_map(
+				$this->resolveField(...),
+				$columns,
 			);
-		} else if ($this->mode === self::ModeInsertNonExisting) {
-			$column = $this->required[0] ?? throw new LogicException('No columns provided');
-			$escaped = $this->resolveField($column);
 
-			return sprintf(' ON DUPLICATE KEY UPDATE %s = %s', $escaped, $escaped);
+			$sql = $this->getPlatform()->onConflictUpdate($this->getEscapedIdColumns(), $columns);
+
+			return $sql ? ' ' . $sql : '';
+		} else if ($this->mode === self::ModeInsertNonExisting) {
+			$sql = $this->getPlatform()->onConflictNothing($this->getEscapedIdColumns());
+
+			return $sql ? ' ' . $sql : '';
 		}
 
 		return '';
+	}
+
+	/**
+	 * @return non-empty-list<string>
+	 */
+	private function getEscapedIdColumns(): array
+	{
+		if (!$this->idColumns) {
+			throw new LogicException('No id columns provided');
+		}
+
+		return array_map($this->escaper->escapeColumn(...), $this->idColumns);
 	}
 
 	private function checkCorrectOrder(OperationValues $values): void
