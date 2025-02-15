@@ -33,7 +33,7 @@ final class ReflectionHelper
 	 * @param ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass<object> $reflection
 	 * @param class-string $className
 	 */
-	public function hasAttribute(
+	public static function hasAttribute(
 		ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass $reflection,
 		string $className,
 		bool $instanceOf = false,
