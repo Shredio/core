@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Database\Rapid;
 
+use BackedEnum;
 use DateTimeInterface;
 use PDO;
 
@@ -31,6 +32,8 @@ final readonly class DefaultOperationEscaper implements OperationEscaper
 			$value = $value->format('Y-m-d H:i:s');
 		} else if (is_bool($value)) {
 			$value = $value ? '1' : '0';
+		} else if ($value instanceof BackedEnum) {
+			$value = (string) $value->value;
 		} else {
 			$value = (string) $value;
 		}
