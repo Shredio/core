@@ -30,6 +30,19 @@ final class ReflectionHelper
 	}
 
 	/**
+	 * @param ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass<object> $reflection
+	 * @param class-string $className
+	 */
+	public function hasAttribute(
+		ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass $reflection,
+		string $className,
+		bool $instanceOf = false,
+	): bool
+	{
+		return $reflection->getAttributes($className, $instanceOf ? ReflectionAttribute::IS_INSTANCEOF : 0) !== [];
+	}
+
+	/**
 	 * @template T of object
 	 * @param ReflectionProperty|ReflectionParameter|ReflectionMethod|ReflectionClass<object> $reflection
 	 * @param class-string<T> $className
