@@ -36,11 +36,33 @@ final readonly class DatabasePairsResult
 	}
 
 	/**
+	 * @return mixed[] $key => $value
+	 */
+	public function toScalarArray(): array
+	{
+		$values = [];
+
+		foreach ($this->yieldScalar() as $item) {
+			$values[$item[$this->key]] = $item[$this->value];
+		}
+
+		return $values;
+	}
+
+	/**
 	 * @return mixed[]
 	 */
 	public function yield(): iterable
 	{
 		return $this->query->toIterable(hydrationMode: Query::HYDRATE_ARRAY);
+	}
+
+	/**
+	 * @return mixed[]
+	 */
+	public function yieldScalar(): iterable
+	{
+		return $this->query->toIterable(hydrationMode: Query::HYDRATE_SCALAR);
 	}
 
 	/**
