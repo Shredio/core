@@ -28,9 +28,10 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 	 * @param T $entity
 	 * @return T
 	 */
-	protected function refetchRelationship(object &$entity): object
+	protected function refetchEntity(object &$entity): object
 	{
 		$em = $this->getEntityManager($entity::class);
+		$em->detach($entity);
 		$fetched = $em->find($entity::class, $em->getClassMetadata($entity::class)->getIdentifierValues($entity));
 
 		if (!$fetched) {
