@@ -73,6 +73,10 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$em->flush();
 
+		if ($callback = $options[self::AfterFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
 		return new SourceResponse($entity, [
 			new SerializationInstruction($options[self::SerializationContext] ?? []),
 		]);
@@ -142,6 +146,10 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$em->flush();
 
+		if ($callback = $options[self::AfterFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
 		return new SourceResponse($entity, [
 			new SerializationInstruction($options[self::SerializationContext] ?? []),
 		]);
@@ -177,6 +185,10 @@ final readonly class SymfonyRestOperations implements RestOperations
 		}
 
 		$em->flush();
+
+		if ($callback = $options[self::AfterFlush] ?? null) {
+			$callback($entity, $em);
+		}
 
 		return new Response(204);
 	}
