@@ -7,6 +7,10 @@ use OutOfBoundsException;
 final class Directories
 {
 
+	public const string Root = 'root';
+	public const string Cache = 'cache';
+	public const string Log = 'log';
+
 	/**
 	 * @param array<string, string> $directories
 	 */
@@ -43,6 +47,21 @@ final class Directories
 		}
 
 		return $this->directories[$name];
+	}
+
+	public function getRoot(): string
+	{
+		return $this->get(self::Root);
+	}
+
+	public function getCache(): string
+	{
+		return $this->get(self::Cache);
+	}
+
+	public function getLog(): string
+	{
+		return $this->get(self::Log);
 	}
 
 	/**
