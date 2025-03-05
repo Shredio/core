@@ -3,7 +3,6 @@
 namespace Shredio\Core\Bridge\Doctrine\Repository;
 
 use Doctrine\DBAL\ArrayParameterType;
-use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Types\Type;
@@ -12,7 +11,7 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use Doctrine\Persistence\ManagerRegistry;
+use InvalidArgumentException;
 use Nette\Utils\FileSystem;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
 use Shredio\Core\Bridge\Doctrine\Platform\PlatformFamily;
@@ -264,21 +263,39 @@ final class DoctrineRepositoryHelper implements ResetInterface
 		$index = 0;
 
 		foreach ($criteria as $field => $value) {
+			$needParameter = true;
+
 			if (is_array($value)) {
 				$op = 'IN(%s)';
 			} else if (is_iterable($value)) {
 				$value = iterator_to_array($value, false);
 				$op = 'IN(%s)';
-			} else if (str_contains($field, ' ')) { // field already contains operator
-				$op = '%s';
+			} else if (($pos = strpos($field, ' ')) !== false) { // field already contains operator
+				if ($value === null) {
+					if (!str_ends_with($field, '!=')) {
+						throw new InvalidArgumentException('Only != operator is allowed with NULL value');
+					}
+
+					$field = substr($field, 0, $pos);
+					$op = 'IS NOT NULL';
+					$needParameter = false;
+				} else {
+					$op = '%s';
+				}
+			} else if ($value === null) {
+				$op = 'IS NULL';
+				$needParameter = false;
 			} else {
 				$op = '= %s';
 			}
 
-			$param = sprintf(':param%d', $index);
+			if ($needParameter) {
+				$qb->setParameter(sprintf('param%d', $index), $value);
 
-			$qb->andWhere(sprintf('e.%s %s', $field, sprintf($op, $param)))
-				->setParameter(substr($param, 1), $value);
+				$op = sprintf($op, sprintf(':param%d', $index));
+			}
+
+			$qb->andWhere(sprintf('e.%s %s', $field, $op));
 
 			$index++;
 		}
@@ -312,7 +329,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	private function loadSqlFile(string $script, PlatformFamily $platform): string
 	{
 		return (static function () use ($script, $platform): string { // @phpstan-ignore-line
-				return require $script;
+			return require $script;
 		})();
 	}
 
