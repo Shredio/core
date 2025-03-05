@@ -4,6 +4,7 @@ namespace Shredio\Core\Bridge\Symfony\Bundle\Compiler;
 
 use Shredio\Core\Bridge\Doctrine\Type\AccountIdType;
 use Shredio\Core\Bridge\Doctrine\Type\DateImmutablePrimaryType;
+use Shredio\Core\Bridge\Doctrine\Type\DateTimeImmutablePrimaryType;
 use Shredio\Core\Bridge\Doctrine\Type\SymbolType;
 use Shredio\Messenger\Middleware\DiscardableMessageMiddleware;
 use Symfony\Component\DependencyInjection\ChildDefinition;
@@ -105,6 +106,10 @@ final class CoreCompilerPass implements CompilerPassInterface
 
 		if (!isset($typeDefinition[DateImmutablePrimaryType::Name])) {
 			$typeDefinition[DateImmutablePrimaryType::Name] = ['class' => DateImmutablePrimaryType::class];
+		}
+
+		if (!isset($typeDefinition[DateTimeImmutablePrimaryType::Name])) {
+			$typeDefinition[DateTimeImmutablePrimaryType::Name] = ['class' => DateTimeImmutablePrimaryType::class];
 		}
 
 		$container->setParameter('doctrine.dbal.connection_factory.types', $typeDefinition);
