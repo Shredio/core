@@ -11,10 +11,10 @@ use Doctrine\ORM\EntityRepository;
 use Doctrine\ORM\Mapping\ClassMetadata;
 use Doctrine\ORM\NoResultException;
 use Doctrine\ORM\QueryBuilder;
-use InvalidArgumentException;
 use Nette\Utils\FileSystem;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
 use Shredio\Core\Bridge\Doctrine\Platform\PlatformFamily;
+use Shredio\Core\Bridge\Doctrine\Repository\Criteria\CriteriaParser;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseFieldResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabasePairsResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseResult;
@@ -119,7 +119,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 			$qb->select('e');
 		}
 
-		$this->applyCriteria($qb, $criteria);
+		$this->applyCriteria($qb, $criteria, 'e');
 		$this->applyOrderBy($qb, $orderBy);
 
 		return new DatabaseResult($qb->getQuery(), $entity, (bool) $select);
@@ -139,7 +139,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 		$qb->from($entity, 'e')
 			->select(...$this->createSelectStatement($entity, [$key => 'k', $value => 'v'], 'e'));
 
-		$this->applyCriteria($qb, $criteria);
+		$this->applyCriteria($qb, $criteria, 'e');
 
 		return new DatabasePairsResult($qb->getQuery(), 'k', 'v');
 	}
@@ -162,7 +162,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 			$qb->distinct();
 		}
 
-		$this->applyCriteria($qb, $criteria);
+		$this->applyCriteria($qb, $criteria, 'e');
 
 		return new DatabaseFieldResult($qb->getQuery(), 'f');
 	}
@@ -180,7 +180,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 		$qb->from($entity, 'e')
 			->select(...$this->createSelectStatement($entity, [$field => 'f'], 'e'));
 
-		$this->applyCriteria($qb, $criteria);
+		$this->applyCriteria($qb, $criteria, 'e');
 
 		try {
 			return $qb->getQuery()->getSingleScalarResult();
@@ -229,7 +229,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 		$qb->from($entity, 'e');
 		$qb->select('1');
 
-		$this->applyCriteria($qb, $criteria);
+		$this->applyCriteria($qb, $criteria, 'e');
 
 		$qb->setMaxResults(1);
 
@@ -255,49 +255,16 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	}
 
 	/**
-	 * @param QueryBuilder $qb
 	 * @param array<string, mixed> $criteria
 	 */
-	private function applyCriteria(QueryBuilder $qb, array $criteria): void
+	private function applyCriteria(QueryBuilder $qb, array $criteria, string $alias): void
 	{
-		$index = 0;
+		foreach (CriteriaParser::parse($criteria) as $parsed) {
+			$qb->andWhere($alias . '.' . $parsed->getExpression());
 
-		foreach ($criteria as $field => $value) {
-			$needParameter = true;
-
-			if (is_array($value)) {
-				$op = 'IN(%s)';
-			} else if (is_iterable($value)) {
-				$value = iterator_to_array($value, false);
-				$op = 'IN(%s)';
-			} else if (($pos = strpos($field, ' ')) !== false) { // field already contains operator
-				if ($value === null) {
-					if (!str_ends_with($field, '!=')) {
-						throw new InvalidArgumentException('Only != operator is allowed with NULL value');
-					}
-
-					$field = substr($field, 0, $pos);
-					$op = 'IS NOT NULL';
-					$needParameter = false;
-				} else {
-					$op = '%s';
-				}
-			} else if ($value === null) {
-				$op = 'IS NULL';
-				$needParameter = false;
-			} else {
-				$op = '= %s';
+			if ($parsed->parameterName) {
+				$qb->setParameter($parsed->parameterName, $parsed->value);
 			}
-
-			if ($needParameter) {
-				$qb->setParameter(sprintf('param%d', $index), $value);
-
-				$op = sprintf($op, sprintf(':param%d', $index));
-			}
-
-			$qb->andWhere(sprintf('e.%s %s', $field, $op));
-
-			$index++;
 		}
 	}
 
