@@ -17,9 +17,16 @@ trait SymfonyExtensionHelper
 		string $interface,
 		string $class,
 		bool $configure = false,
+		?string $name = null,
 	): ServiceConfigurator
 	{
-		$service = $services->set($class);
+		if ($name === null) {
+			$service = $services->set($class);
+		} else {
+			$service = $services->set($name, $class);
+			$class = $name;
+		}
+
 		$service->autowire()
 			->autoconfigure($configure)
 			->alias($interface, $class);

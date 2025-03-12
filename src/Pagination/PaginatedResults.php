@@ -9,7 +9,7 @@ use Traversable;
 
 /**
  * @template TKey
- * @template TValue of object
+ * @template TValue
  * @implements IteratorAggregate<TKey, TValue>
  */
 final class PaginatedResults implements IteratorAggregate

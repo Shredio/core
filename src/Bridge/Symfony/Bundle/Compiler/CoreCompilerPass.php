@@ -27,6 +27,15 @@ final class CoreCompilerPass implements CompilerPassInterface
 
 		$this->processDoctrineTypes($container);
 		$this->processMessenger($container);
+		$this->processPaginations($container);
+	}
+
+	private function processPaginations(ContainerBuilder $container): void
+	{
+		$ids = array_keys($container->findTaggedServiceIds('pagination.chain'));
+
+		$container->getDefinition('core.pagination')
+			->setArgument(0, array_map(fn (string $id) => new Reference($id), $ids));
 	}
 
 	private function processMessenger(ContainerBuilder $container): void

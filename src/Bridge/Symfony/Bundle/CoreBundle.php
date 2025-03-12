@@ -58,7 +58,10 @@ use Shredio\Core\Package\Packager;
 use Shredio\Core\Package\Processor\FormattingInstructionProcessor;
 use Shredio\Core\Package\Processor\InstructionProcessor;
 use Shredio\Core\Package\Processor\SerializationInstructionProcessor;
+use Shredio\Core\Pagination\ArrayPagination;
+use Shredio\Core\Pagination\ChainablePagination;
 use Shredio\Core\Pagination\Pagination;
+use Shredio\Core\Pagination\PaginationChain;
 use Shredio\Core\Pagination\PaginationLinkGenerator;
 use Shredio\Core\Path\Directories;
 use Shredio\Core\Payload\ErrorsPayloadProcessor;
@@ -293,7 +296,17 @@ final class CoreBundle extends AbstractBundle
 		$this->addInterfaceService($services, QueryBuilderFactory::class, DefaultQueryBuilderFactory::class);
 		$this->addInterfaceService($services, EntityFactory::class, SymfonyEntityFactory::class);
 		$this->addInterfaceService($services, PaginationLinkGenerator::class, SymfonyPaginationLinkGenerator::class);
-		$this->addInterfaceService($services, Pagination::class, DoctrinePagination::class);
+		$this->addInterfaceService($services, Pagination::class, PaginationChain::class, name: 'core.pagination');
+
+		$builder->registerForAutoconfiguration(ChainablePagination::class)
+			->addTag('pagination.chain');
+
+		$services->set(DoctrinePagination::class)
+			->autowire()
+			->tag('pagination.chain');
+		$services->set(ArrayPagination::class)
+			->autowire()
+			->tag('pagination.chain');
 	}
 
 	private function loadPackager(ContainerConfigurator $container, ContainerBuilder $builder): void

@@ -4,15 +4,18 @@ namespace Shredio\Core\Bridge\Doctrine\Pagination;
 
 use InvalidArgumentException;
 use Shredio\Core\Bridge\Doctrine\Query\QueryBuilder;
+use Shredio\Core\Pagination\ChainablePagination;
 use Shredio\Core\Pagination\PagePaginationPointer;
 use Shredio\Core\Pagination\PaginatedResults;
-use Shredio\Core\Pagination\Pagination;
 use Shredio\Core\Pagination\PaginationLinkGenerator;
+use Shredio\Core\Pagination\PaginationMethods;
 use Shredio\Core\Pagination\PaginationPointer;
 use Shredio\Core\Pagination\PaginationRequest;
 
-final class DoctrinePagination implements Pagination
+final readonly class DoctrinePagination implements ChainablePagination
 {
+
+	use PaginationMethods;
 
 	public function __construct(
 		private PaginationLinkGenerator $paginationLinkGenerator,
@@ -20,8 +23,13 @@ final class DoctrinePagination implements Pagination
 	{
 	}
 
+	public function supports(iterable $results): bool
+	{
+		return $results instanceof QueryBuilder;
+	}
+
 	/**
-	 * @template TKey
+	 * @template TKey of array-key
 	 * @template TValue of object
 	 * @param iterable<TKey, TValue> $results
 	 * @return PaginatedResults<TKey, TValue>
@@ -41,34 +49,15 @@ final class DoctrinePagination implements Pagination
 		}
 
 		$limit = $pointer->getLimit($request);
+		$offset = $pointer->getOffset($request);
 
 		$results->setMaxResults($limit + 1); // Extra entity to check if there is a next page
-		$results->setFirstResult($pointer->getOffset($request));
+		$results->setFirstResult($offset);
 
+		/** @var array<TKey, TValue> $entities */
 		$entities = $results->getQuery()->getResult();
 
-		$nextLink = null;
-		$nextPointer = null;
-		$prevLink = null;
-		$prevPointer = null;
-		$isLastPage = true;
-
-		if (count($entities) > $limit) {
-			$nextPage = $pointer->getNextPage($request);
-			$nextLink = $this->paginationLinkGenerator->link($request, [$pointer->getParameterName() => $nextPage]);
-			$nextPointer = (string) $nextPage;
-			$isLastPage = false;
-
-			array_pop($entities); // Remove the extra entity
-		}
-
-		if ($prevPage = $pointer->getPrevPage($request)) {
-			$prevLink = $this->paginationLinkGenerator->link($request, [$pointer->getParameterName() => $prevPage]);
-			$prevPointer = (string) $prevPage;
-		}
-
-		/** @var PaginatedResults<TKey, TValue> */
-		return new PaginatedResults($entities, $prevLink, $prevPointer, $nextLink, $nextPointer, $isLastPage);
+		return $this->createResultsWithExtraResult($entities, $request, $pointer, $this->paginationLinkGenerator);
 	}
 
 }

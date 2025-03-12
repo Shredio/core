@@ -7,7 +7,7 @@ interface Pagination
 
 	/**
 	 * @template TKey
-	 * @template TValue of object
+	 * @template TValue
 	 * @param iterable<TKey, TValue> $results
 	 * @return PaginatedResults<TKey, TValue>
 	 */
