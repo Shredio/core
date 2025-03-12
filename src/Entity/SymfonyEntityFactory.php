@@ -12,8 +12,8 @@ use Shredio\Core\Entity\Metadata\UpdateContext;
 use Shredio\Core\Exception\BadRequestException;
 use Shredio\Core\Exception\HttpException;
 use Shredio\Core\Exception\InvalidDataException;
-use Shredio\Core\Exception\ValidationException;
 use Shredio\Core\Payload\ErrorsPayload;
+use Shredio\Core\Payload\ErrorThrowType;
 use Shredio\Core\Payload\FieldErrorPayload;
 use Shredio\Core\Payload\InternalErrorPayload;
 use Shredio\Core\Validator\ValidationGroupProvider;
@@ -127,7 +127,7 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 				));
 			}
 
-			throw new ValidationException($errors);
+			$errors->throw(ErrorThrowType::Validation);
 		} catch (ExtraAttributesException $exception) {
 			$message = sprintf('Extra values: %s', implode(', ', $exception->getExtraAttributes()));
 
@@ -168,9 +168,9 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 				$errors->addError(new FieldErrorPayload($message, $propertyPath));
 			}
 
-			throw new ValidationException($errors);
+			$errors->throw(ErrorThrowType::Validation);
 		} else if (!$errors->isOk()) {
-			throw new ValidationException($errors);
+			$errors->throw(ErrorThrowType::Validation);
 		}
 	}
 

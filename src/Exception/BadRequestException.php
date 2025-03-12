@@ -8,7 +8,7 @@ use Shredio\Core\Payload\InternalErrorPayload;
 use Shredio\Core\Payload\MessageErrorPayload;
 use Throwable;
 
-final class BadRequestException extends RuntimeException implements HttpException
+class BadRequestException extends RuntimeException implements HttpException
 {
 
 	public function __construct(

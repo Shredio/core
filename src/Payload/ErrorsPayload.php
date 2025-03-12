@@ -2,6 +2,8 @@
 
 namespace Shredio\Core\Payload;
 
+use Shredio\Core\Exception\BadRequestWithPayloadException;
+use Shredio\Core\Exception\ValidationException;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
 final class ErrorsPayload
@@ -86,6 +88,25 @@ final class ErrorsPayload
 		}
 
 		return $payload;
+	}
+
+	public function throw(ErrorThrowType $type): never
+	{
+		match ($type) {
+			ErrorThrowType::Validation => throw new ValidationException($this),
+			ErrorThrowType::BadRequest => throw new BadRequestWithPayloadException($this),
+		};
+	}
+
+	public function tryToThrow(ErrorThrowType $type, bool $doNotThrowOnWarnings = false): void
+	{
+		if (!$doNotThrowOnWarnings && $this->isOk()) {
+			return;
+		} else if ($doNotThrowOnWarnings && !$this->hasErrors()) {
+			return;
+		}
+
+		$this->throw($type);
 	}
 
 }
