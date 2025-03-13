@@ -28,16 +28,36 @@ final readonly class DatabaseResult
 	/**
 	 * @return mixed[]
 	 */
-	public function toArray(): array
+	public function toArray(?string $key = null): array
 	{
+		if ($key !== null) {
+			$return = [];
+
+			foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_ARRAY) as $row) {
+				$return[$row[$key]] = $row;
+			}
+
+			return $return;
+		}
+
 		return $this->query->getArrayResult();
 	}
 
 	/**
 	 * @return mixed[]
 	 */
-	public function toScalar(): array
+	public function toScalar(?string $key = null): array
 	{
+		if ($key !== null) {
+			$return = [];
+
+			foreach ($this->query->toIterable(hydrationMode: Query::HYDRATE_SCALAR) as $row) {
+				$return[$row[$key]] = $row;
+			}
+
+			return $return;
+		}
+
 		return $this->query->getScalarResult();
 	}
 
