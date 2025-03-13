@@ -271,6 +271,10 @@ final class CoreBundle extends AbstractBundle
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
+		if (!class_exists(PsrHttpFactory::class)) {
+			return;
+		}
+
 		$services = $container->services();
 
 		$services->set(PsrRequestResolver::class)
@@ -360,9 +364,11 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		$services->set(PackagingMiddleware::class)
-			->autowire()
-			->autoconfigure();
+		if (class_exists(HttpMessageFactoryInterface::class)) {
+			$services->set(PackagingMiddleware::class)
+				->autowire()
+				->autoconfigure();
+		}
 	}
 
 	private function loadSerializer(ContainerConfigurator $container, ContainerBuilder $builder): void
