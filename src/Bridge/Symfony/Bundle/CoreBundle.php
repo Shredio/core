@@ -112,7 +112,6 @@ final class CoreBundle extends AbstractBundle
 	{
 		EnvVars::require('APP_ENV', 'The environment the application is running in.');
 		EnvVars::require('APP_RUNTIME_ENV', 'The runtime environment the application is running in.');
-		EnvVars::require('AUTH_PASETO_SECRET', 'Secret key for PASETO tokens.');
 
 		if ($container->env() === 'test') {
 			$this->loadTest($container, $builder);
@@ -246,6 +245,10 @@ final class CoreBundle extends AbstractBundle
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
+		if (!getenv('AUTH_PASETO_SECRET')) {
+			return;
+		}
+
 		$services = $container->services();
 
 		$services->set('core.authenticator', SymfonyAuthenticator::class)
@@ -415,17 +418,19 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		$services->set(EncodeTokenCommand::class)
-			->autowire()
-			->tag('console.command');
+		if (getenv('AUTH_PASETO_SECRET')) {
+			$services->set(EncodeTokenCommand::class)
+				->autowire()
+				->tag('console.command');
 
-		$services->set(DecodeTokenCommand::class)
-			->autowire()
-			->tag('console.command');
+			$services->set(DecodeTokenCommand::class)
+				->autowire()
+				->tag('console.command');
 
-		$services->set(AuthTokenCommand::class)
-			->autowire()
-			->tag('console.command');
+			$services->set(AuthTokenCommand::class)
+				->autowire()
+				->tag('console.command');
+		}
 	}
 
 	private function loadMessenger(ContainerConfigurator $container, ContainerBuilder $builder): void
