@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Bridge\Symfony\Test;
 
+use LogicException;
 use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Symfony\Bundle\FrameworkBundle\Test\TestBrowserToken;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
@@ -18,7 +19,7 @@ final class TestBench
 	private bool $setUser = false;
 
 	public function __construct(
-		private readonly TokenStorageInterface $tokenStorage,
+		private readonly ?TokenStorageInterface $tokenStorage,
 		private readonly ErrorListener $errorListener,
 		private readonly ErrorHandlerForTests $errorHandlerForTests,
 	)
@@ -40,6 +41,10 @@ final class TestBench
 	public function onKernelRequest(): void
 	{
 		if ($this->setUser) {
+			if (!$this->tokenStorage) {
+				throw new LogicException('Token storage is not available.');
+			}
+
 			if ($user = $this->user) {
 				$this->tokenStorage->setToken(new TestBrowserToken($user->getRoles(), $user));
 			} else {
