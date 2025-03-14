@@ -364,7 +364,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		if (class_exists(HttpMessageFactoryInterface::class)) {
+		if (interface_exists(HttpMessageFactoryInterface::class)) {
 			$services->set(PackagingMiddleware::class)
 				->autowire()
 				->autoconfigure();
