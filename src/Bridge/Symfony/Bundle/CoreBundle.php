@@ -424,7 +424,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 
-		if (getenv('AUTH_PASETO_SECRET')) {
+		if (EnvVars::getString('AUTH_PASETO_SECRET') !== '') {
 			$services->set(EncodeTokenCommand::class)
 				->autowire()
 				->tag('console.command');
