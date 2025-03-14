@@ -245,7 +245,7 @@ final class CoreBundle extends AbstractBundle
 
 	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		if (!getenv('AUTH_PASETO_SECRET')) {
+		if (EnvVars::getString('AUTH_PASETO_SECRET') === '') {
 			return;
 		}
 
