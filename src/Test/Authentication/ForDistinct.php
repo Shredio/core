@@ -12,7 +12,7 @@ final readonly class ForDistinct implements Actor
 
 	public function __construct(
 		private Actor $author,
-		Actor $signed = null,
+		?Actor $signed = null,
 	)
 	{
 		$this->signed = $signed ?? $this->author->copy();
