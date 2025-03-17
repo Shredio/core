@@ -15,6 +15,27 @@ final readonly class EntityManagerRegistry
 	{
 	}
 
+	public function getDefaultManager(): EntityManagerInterface
+	{
+		$manager = $this->registry->getManager();
+
+		assert($manager instanceof EntityManagerInterface);
+
+		return $manager;
+	}
+
+	/**
+	 * @return iterable<EntityManagerInterface>
+	 */
+	public function getManagers(): iterable
+	{
+		foreach ($this->registry->getManagers() as $manager) {
+			assert($manager instanceof EntityManagerInterface);
+
+			yield $manager;
+		}
+	}
+
 	/**
 	 * @param class-string $entity
 	 */
