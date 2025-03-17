@@ -44,7 +44,11 @@ final class ErrorListener
 		} else if ($throwable instanceof RequestExceptionInterface) {
 			$event->stopPropagation();
 			$event->setResponse($this->createResponseForBadRequestException($throwable));
-		} else if ($throwable instanceof SymfonyHttpException) {
+		} else if ($throwable instanceof SymfonyHttpException) { // catching SymfonyHttpException is deprecated
+			if ($throwable->getStatusCode() === 400) {
+				return;
+			}
+
 			$event->stopPropagation();
 			$event->setResponse($this->createResponseForSymfonyHttpException($throwable));
 		} else if ($this->staging) {

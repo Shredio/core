@@ -17,6 +17,8 @@ use Shredio\Core\Bridge\Symfony\Bundle\Compiler\PackagerCompilerPass;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyCacheFactory;
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
 use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
+use Shredio\Core\Bridge\Symfony\Error\ProblemNormalizer;
+use Shredio\Core\Bridge\Symfony\Error\SerializerErrorRenderFormats;
 use Shredio\Core\Bridge\Symfony\Extension\SymfonyExtensionHelper;
 use Shredio\Core\Bridge\Symfony\Http\PsrRequestResolver;
 use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
@@ -117,6 +119,8 @@ final class CoreBundle extends AbstractBundle
 			$this->loadTest($container, $builder);
 		}
 
+		$container->parameters()->set('core.api', $isApi = $config['api'] ?? false);
+
 		$this->loadRestRouter($container, $builder);
 		$this->loadBasics($container, $builder);
 		$this->loadCache($container, $builder, $config['cache'] ?? []);
@@ -129,6 +133,10 @@ final class CoreBundle extends AbstractBundle
 		$this->loadHttpCache($container, $builder);
 		$this->loadConsole($container, $builder);
 		$this->loadMessenger($container, $builder);
+
+		if ($isApi) {
+			$this->loadApi($container, $builder);
+		}
 	}
 
 	private function loadBasics(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -178,6 +186,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		$definition->rootNode() // @phpstan-ignore-line
 			->children()
+				->booleanNode('api')->defaultFalse()->end()
 				->arrayNode('cache')
 					->children()
 						->booleanNode('enabled')->defaultTrue()->end()
@@ -395,7 +404,7 @@ final class CoreBundle extends AbstractBundle
 	{
 		$services = $container->services();
 		$services->set(ErrorHandlerForTests::class)
-			->args([service(ErrorHandlerForTests::class . '.inner')])
+			->args([service('.inner')])
 			->decorate('error_handler.error_renderer.serializer');
 
 		$services->set('testbench', TestBench::class)
@@ -479,6 +488,21 @@ final class CoreBundle extends AbstractBundle
 				service('messenger.rate_limiter_locator')->nullOnInvalid(),
 				[], // Receiver names
 			]);
+	}
+
+	private function loadApi(ContainerConfigurator $container, ContainerBuilder $builder): void
+	{
+		$services = $container->services();
+
+		// change the default format to JSON for 400-499 status codes
+		$services->set('core.error_renderer.formats', SerializerErrorRenderFormats::class)
+			->private()
+			->args([service('request_stack')]);
+
+		// removes type and title from the problem response
+		$services->set(ProblemNormalizer::class)
+			->decorate('serializer.normalizer.problem')
+			->args([service('.inner')]);
 	}
 
 }
