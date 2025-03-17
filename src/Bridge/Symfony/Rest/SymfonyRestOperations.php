@@ -9,6 +9,7 @@ use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
 use Shredio\Core\Common\Debug\DebugHelper;
 use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
+use Shredio\Core\Fixture\StagingReadyFixture;
 use Shredio\Core\Package\Instruction\SerializationInstruction;
 use Shredio\Core\Package\Response\SourceResponse;
 use Shredio\Core\Rest\RestOperationBuilder;
@@ -195,7 +196,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 	private function findEntity(mixed $id): ?object
 	{
-		if ($this->appEnv->isStaging() && $fixture = $this->getFixture()) {
+		if ($this->appEnv->isStaging() && ($fixture = $this->getFixture()) && $fixture instanceof StagingReadyFixture) {
 			if (is_array($id)) {
 				return $fixture->make($id);
 			} else {
