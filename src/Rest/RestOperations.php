@@ -13,6 +13,7 @@ interface RestOperations
 	public const string SerializationContext = 'serializationContext';
 	public const string BeforeFlush = 'beforeFlush';
 	public const string AfterFlush = 'afterFlush';
+	public const string OnEntity = 'onEntity';
 
 	public const int NoGuard = 0;
 	public const int GuardOnEntity = 1;

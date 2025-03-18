@@ -46,7 +46,18 @@ final class RestOperationBuilder
 	}
 
 	/**
-	 * @param callable(T $entity, EntityManagerInterface $em): void $callback
+	 * @param callable(T $entity): void $callback
+	 * @return self<T>
+	 */
+	public function onEntity(callable $callback): self
+	{
+		$this->options[RestOperations::OnEntity] = $callback;
+
+		return $this;
+	}
+
+	/**
+	 * @param callable(T $entity, EntityManagerInterface $em): (void|T) $callback
 	 * @return self<T>
 	 */
 	public function beforeFlush(callable $callback): self

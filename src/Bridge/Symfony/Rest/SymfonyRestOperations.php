@@ -65,6 +65,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 			return new Response(204);
 		}
 
+		if ($callback = $options[self::OnEntity] ?? null) {
+			$return = $callback($entity);
+
+			if (is_object($return)) {
+				$entity = $return;
+			}
+		}
+
 		$em = $this->getEntityManager();
 		$em->persist($entity);
 
@@ -99,6 +107,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 			throw new NotFoundHttpException(
 				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
 			);
+		}
+
+		if ($callback = $options[self::OnEntity] ?? null) {
+			$return = $callback($entity);
+
+			if (is_object($return)) {
+				$entity = $return;
+			}
 		}
 
 		if ($guardMode & self::GuardOnEntity) {
@@ -138,6 +154,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 			return new Response(204);
 		}
 
+		if ($callback = $options[self::OnEntity] ?? null) {
+			$return = $callback($entity);
+
+			if (is_object($return)) {
+				$entity = $return;
+			}
+		}
+
 		$em = $this->getEntityManager();
 		$em->persist($entity);
 
@@ -172,6 +196,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 			throw new NotFoundHttpException(
 				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
 			);
+		}
+
+		if ($callback = $options[self::OnEntity] ?? null) {
+			$return = $callback($entity);
+
+			if (is_object($return)) {
+				$entity = $return;
+			}
 		}
 
 		if ($guardMode & self::GuardOnEntity) {
