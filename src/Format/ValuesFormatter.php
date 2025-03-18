@@ -7,13 +7,10 @@ use ReflectionClass;
 use ReflectionProperty;
 use Shredio\Core\Format\Attribute\FormatAttribute;
 use Shredio\Core\Format\Customize\CustomFormatting;
-use Spiral\Core\Attribute\Singleton;
 
-#[Singleton]
 final class ValuesFormatter
 {
 
-	public const CurrencyContext = 'currency';
 	public const GroupsContext = 'groups';
 
 	public function __construct(

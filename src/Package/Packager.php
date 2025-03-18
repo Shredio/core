@@ -9,9 +9,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Shredio\Core\Package\Instruction\PackingInstruction;
 use Shredio\Core\Package\Processor\InstructionProcessor;
-use Spiral\Core\Attribute\Singleton;
 
-#[Singleton]
 final class Packager
 {
 

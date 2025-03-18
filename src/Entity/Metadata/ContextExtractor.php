@@ -3,9 +3,7 @@
 namespace Shredio\Core\Entity\Metadata;
 
 use ReflectionClass;
-use Spiral\Core\Attribute\Singleton;
 
-#[Singleton]
 final class ContextExtractor
 {
 

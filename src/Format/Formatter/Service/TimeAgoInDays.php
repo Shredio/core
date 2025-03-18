@@ -3,10 +3,8 @@
 namespace Shredio\Core\Format\Formatter\Service;
 
 use DateTimeInterface;
-use Spiral\Core\Attribute\Singleton;
 use Symfony\Component\Clock\DatePoint;
 
-#[Singleton]
 final class TimeAgoInDays
 {
 
