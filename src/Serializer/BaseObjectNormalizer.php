@@ -22,7 +22,7 @@ abstract class BaseObjectNormalizer implements NormalizerAwareInterface, Normali
 
 	private ?NormalizerInterface $normalizer = null;
 
-	protected Details $details;
+	private Details $details;
 
 	/**
 	 * @return TObject
