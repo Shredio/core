@@ -47,7 +47,7 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 	/**
 	 * @param object|object[] $entity
 	 */
-	protected function persist(object|array $entity, bool $clear = false): void
+	protected function persist(object|array $entity, bool $clear = true): void
 	{
 		$managers = [];
 
