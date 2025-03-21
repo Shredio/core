@@ -46,23 +46,26 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 	/**
 	 * @param object|object[] $entity
 	 */
-	protected function persist(object|array $entity): void
+	protected function persist(object|array $entity, bool $clear = false): void
 	{
-		if (!is_array($entity)) {
-			$em = $this->getEntityManager($entity::class);
-			$em->persist($entity);
-			$em->flush();
-		} else if (($firstKey = array_key_first($entity)) !== null) {
-			$managers = [];
+		$managers = [];
 
+		if (!is_array($entity)) {
+			$managers[] = $em = $this->getEntityManager($entity::class);
+			$em->persist($entity);
+		} else if ((array_key_first($entity)) !== null) {
 			foreach ($entity as $item) {
 				$className = $item::class;
 				$em = $managers[$className] ??= $this->getEntityManager($className);
 				$em->persist($item);
 			}
+		}
 
-			foreach ($managers as $em) {
-				$em->flush();
+		foreach ($managers as $em) {
+			$em->flush();
+
+			if ($clear) {
+				$em->clear();
 			}
 		}
 	}
