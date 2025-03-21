@@ -51,4 +51,21 @@ final readonly class EntityManagerRegistry
 		return $manager;
 	}
 
+	public function resetByInstance(EntityManagerInterface $em): EntityManagerInterface
+	{
+		foreach ($this->registry->getManagers() as $name => $manager) {
+			if ($em === $manager) {
+				$this->registry->resetManager($name);
+
+				$newManager = $this->registry->getManager($name);
+
+				assert($newManager instanceof EntityManagerInterface);
+
+				return $newManager;
+			}
+		}
+
+		throw new InvalidArgumentException('Entity manager not found.');
+	}
+
 }
