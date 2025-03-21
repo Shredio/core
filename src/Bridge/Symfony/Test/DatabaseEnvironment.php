@@ -31,8 +31,9 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 	protected function refetchEntity(object &$entity): object
 	{
 		$em = $this->getEntityManager($entity::class);
-		$em->detach($entity);
+
 		$fetched = $em->find($entity::class, $em->getClassMetadata($entity::class)->getIdentifierValues($entity));
+		$em->refresh($fetched);
 
 		if (!$fetched) {
 			throw new LogicException('Entity not found.');
