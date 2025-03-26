@@ -34,4 +34,14 @@ trait SymfonyExtensionHelper
 		return $service;
 	}
 
+	/**
+	 * @param class-string $class
+	 */
+	private function addConsoleCommand(ServicesConfigurator $services, string $class): ServiceConfigurator
+	{
+		return $services->set($class)
+			->autowire()
+			->tag('console.command');
+	}
+
 }

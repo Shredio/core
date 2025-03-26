@@ -92,6 +92,7 @@ use Symfony\Bridge\PsrHttpMessage\HttpFoundationFactoryInterface;
 use Symfony\Bridge\PsrHttpMessage\HttpMessageFactoryInterface;
 use Symfony\Component\Cache\Psr16Cache;
 use Symfony\Component\Config\Definition\Configurator\DefinitionConfigurator;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ReferenceConfigurator;
@@ -121,17 +122,19 @@ final class CoreBundle extends AbstractBundle
 
 		$container->parameters()->set('core.api', $isApi = $config['api'] ?? false);
 
+		if ($config['extensions']['authentication'] ?? false) {
+			$this->loadAuthentication($container, $builder);
+		}
+
 		$this->loadRestRouter($container, $builder);
 		$this->loadBasics($container, $builder);
 		$this->loadCache($container, $builder, $config['cache'] ?? []);
-		$this->loadSecurity($container, $builder);
 		$this->loadPsr7($container, $builder);
 		$this->loadDoctrine($container, $builder);
 		$this->loadPackager($container, $builder);
 		$this->loadMiddlewares($container, $builder);
 		$this->loadSerializer($container, $builder);
 		$this->loadHttpCache($container, $builder);
-		$this->loadConsole($container, $builder);
 		$this->loadMessenger($container, $builder);
 
 		if ($isApi) {
@@ -187,6 +190,11 @@ final class CoreBundle extends AbstractBundle
 		$definition->rootNode() // @phpstan-ignore-line
 			->children()
 				->booleanNode('api')->defaultFalse()->end()
+				->arrayNode('extensions')
+					->children()
+						->booleanNode('authentication')->defaultFalse()->end()
+					->end()
+				->end()
 				->arrayNode('cache')
 					->children()
 						->booleanNode('enabled')->defaultTrue()->end()
@@ -252,12 +260,8 @@ final class CoreBundle extends AbstractBundle
 		return new PrefixCache(new Psr16Cache($cache), $prefix);
 	}
 
-	private function loadSecurity(ContainerConfigurator $container, ContainerBuilder $builder): void
+	private function loadAuthentication(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		if (EnvVars::getString('AUTH_PASETO_SECRET') === '') {
-			return;
-		}
-
 		$services = $container->services();
 
 		$services->set('core.authenticator', SymfonyAuthenticator::class)
@@ -276,6 +280,12 @@ final class CoreBundle extends AbstractBundle
 		}
 
 		$provider->alias(AuthTokenProvider::class, 'core.authTokenProvider');
+
+		if (class_exists(Command::class)) {
+			$this->addConsoleCommand($services, EncodeTokenCommand::class);
+			$this->addConsoleCommand($services, DecodeTokenCommand::class);
+			$this->addConsoleCommand($services, AuthTokenCommand::class);
+		}
 	}
 
 	private function loadPsr7(ContainerConfigurator $container, ContainerBuilder $builder): void
@@ -427,25 +437,6 @@ final class CoreBundle extends AbstractBundle
 
 		$services->set(HttpCacheManager::class)
 			->args([tagged_iterator('core.http_cache')]);
-	}
-
-	private function loadConsole(ContainerConfigurator $container, ContainerBuilder $builder): void
-	{
-		$services = $container->services();
-
-		if (EnvVars::getString('AUTH_PASETO_SECRET') !== '') {
-			$services->set(EncodeTokenCommand::class)
-				->autowire()
-				->tag('console.command');
-
-			$services->set(DecodeTokenCommand::class)
-				->autowire()
-				->tag('console.command');
-
-			$services->set(AuthTokenCommand::class)
-				->autowire()
-				->tag('console.command');
-		}
 	}
 
 	private function loadMessenger(ContainerConfigurator $container, ContainerBuilder $builder): void
