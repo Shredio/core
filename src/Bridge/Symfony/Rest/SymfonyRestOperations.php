@@ -253,6 +253,16 @@ final readonly class SymfonyRestOperations implements RestOperations
 		);
 	}
 
+	public function buildFindOne(array $criteria, array $orderBy = []): RestOperationBuilder
+	{
+		/** @var RestOperationBuilder<T> */
+		return new RestOperationBuilder(
+			'findOne',
+			fn (int $guardMode, array $options): ResponseInterface => $this->findOne($criteria, $orderBy, $guardMode, $options),
+			$this->guardNamespace ? self::GuardOnEntity : self::NoGuard,
+		);
+	}
+
 	/**
 	 * @param mixed[] $values
 	 * @return RestOperationBuilder<T>

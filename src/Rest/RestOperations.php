@@ -71,6 +71,13 @@ interface RestOperations
 	public function buildRead(mixed $id): RestOperationBuilder;
 
 	/**
+	 * @param array<string, mixed> $criteria
+	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @return RestOperationBuilder<T>
+	 */
+	public function buildFindOne(array $criteria, array $orderBy = []): RestOperationBuilder;
+
+	/**
 	 * @param mixed[] $values
 	 * @return RestOperationBuilder<T>
 	 */

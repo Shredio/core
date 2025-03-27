@@ -19,7 +19,7 @@ final class RestOperationBuilder
 	private array $options = [];
 
 	/**
-	 * @param 'create'|'read'|'update'|'delete' $type
+	 * @param 'create'|'findOne'|'read'|'update'|'delete' $type
 	 * @param callable(int $guardMode, mixed[] $options): ResponseInterface $runner
 	 */
 	public function __construct(
