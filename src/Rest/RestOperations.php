@@ -10,6 +10,7 @@ use Psr\Http\Message\ResponseInterface;
 interface RestOperations
 {
 
+	public const string ValidationMode = 'validationMode';
 	public const string SerializationContext = 'serializationContext';
 	public const string BeforeFlush = 'beforeFlush';
 	public const string AfterFlush = 'afterFlush';

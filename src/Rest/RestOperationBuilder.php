@@ -54,7 +54,7 @@ final class RestOperationBuilder
 			throw new LogicException('Validation mode is only available for create and update operations.');
 		}
 
-		$this->options['validationMode'] = $enabled;
+		$this->options[RestOperations::ValidationMode] = $enabled;
 
 		return $this;
 	}

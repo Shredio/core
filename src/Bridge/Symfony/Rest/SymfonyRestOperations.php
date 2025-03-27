@@ -108,7 +108,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('create', $entity);
 		}
 
-		if ($options['validationMode'] ?? false) {
+		if ($options[self::ValidationMode] ?? false) {
 			return new Response(204);
 		}
 
@@ -160,7 +160,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$entity = $this->entityFactory->update($entity, $values);
 
-		if ($options['validationMode'] ?? false) {
+		if ($options[self::ValidationMode] ?? false) {
 			return new Response(204);
 		}
 
