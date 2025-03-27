@@ -21,6 +21,10 @@ final readonly class SerializerErrorRenderFormats
 			throw new NotEncodableValueException();
 		}
 
+		if ($exception->getStatusCode() === 500) {
+			return $request->getPreferredFormat() ?? 'html';
+		}
+
 		$format = $request->getPreferredFormat('json');
 
 		if ($format === 'html') {
