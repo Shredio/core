@@ -36,6 +36,15 @@ interface RestOperations
 	public function read(mixed $id, ?int $guardMode = null, array $options = []): ResponseInterface;
 
 	/**
+	 * Finds a single entity by a set of criteria. Default guard mode is GuardOnEntity, if guardNamespace is not set then NoGuard.
+	 *
+	 * @param array<string, mixed> $criteria
+	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param mixed[] $options
+	 */
+	public function findOne(array $criteria, array $orderBy = [], ?int $guardMode = null, array $options = []): ResponseInterface;
+
+	/**
 	 * Default guard mode is GuardOnEntity, if guardNamespace is not set then NoGuard.
 	 *
 	 * @param mixed[] $values

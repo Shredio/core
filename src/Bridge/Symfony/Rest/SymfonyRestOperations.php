@@ -6,6 +6,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
+use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryHelper;
 use Shredio\Core\Common\Debug\DebugHelper;
 use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
@@ -44,6 +45,35 @@ final readonly class SymfonyRestOperations implements RestOperations
 		private array $defaultOptions = [],
 	)
 	{
+	}
+
+	/**
+	 * Finds a single entity by a set of criteria.
+	 *
+	 * @param array<string, mixed> $criteria
+	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param mixed[] $options
+	 */
+	public function findOne(array $criteria, array $orderBy = [], ?int $guardMode = null, array $options = []): ResponseInterface
+	{
+		$options = array_merge($this->defaultOptions, $options);
+
+		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
+
+		if ($guardMode & self::GuardOnAttribute) {
+			$this->requirePermission('read');
+		}
+
+		$entity = $this->getEntityByCriteria($criteria, $orderBy);
+		$this->callOnEntity($entity, $options);
+
+		if ($guardMode & self::GuardOnEntity) {
+			$this->requirePermission('read', $entity);
+		}
+
+		return new SourceResponse($entity, [
+			new SerializationInstruction($options[self::SerializationContext] ?? []),
+		]);
 	}
 
 	public function create(array $values, ?int $guardMode = null, array $options = []): ResponseInterface
@@ -255,12 +285,28 @@ final readonly class SymfonyRestOperations implements RestOperations
 	 */
 	private function getEntity(mixed $id): object
 	{
-		$entity = $this->findEntity($id);
+		$entity = $this->findEntityById($id);
 
 		if (!$entity) {
 			throw new NotFoundHttpException(
 				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
 			);
+		}
+
+		return $entity;
+	}
+
+	/**
+	 * @param array<string, mixed> $criteria
+	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @return T
+	 */
+	private function getEntityByCriteria(array $criteria, array $orderBy): object
+	{
+		$entity = $this->findEntityByCriteria($criteria, $orderBy);
+
+		if (!$entity) {
+			throw new NotFoundHttpException(sprintf('Entity %s not found', $this->entityName));
 		}
 
 		return $entity;
@@ -290,7 +336,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 	/**
 	 * @return T|null
 	 */
-	private function findEntity(mixed $id): ?object
+	private function findEntityById(mixed $id): ?object
 	{
 		if ($this->appEnv->isStaging() && ($fixture = $this->getFixture()) && $fixture instanceof StagingReadyFixture) {
 			if (is_array($id)) {
@@ -307,6 +353,16 @@ final readonly class SymfonyRestOperations implements RestOperations
 		}
 
 		return $this->getEntityManager()->find($this->entityName, $id);
+	}
+
+	/**
+	 * @param array<string, mixed> $criteria
+	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @return T|null
+	 */
+	private function findEntityByCriteria(array $criteria, array $orderBy): ?object
+	{
+		return (new DoctrineRepositoryHelper($this->registry))->findOneBy($this->entityName, $criteria, $orderBy);
 	}
 
 	/**
