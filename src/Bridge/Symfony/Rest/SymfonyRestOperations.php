@@ -12,6 +12,7 @@ use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Fixture\StagingReadyFixture;
 use Shredio\Core\Package\Instruction\SerializationInstruction;
 use Shredio\Core\Package\Response\SourceResponse;
+use Shredio\Core\Rest\Operation\EntityOperation;
 use Shredio\Core\Rest\RestOperationBuilder;
 use Shredio\Core\Rest\RestOperations;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -65,26 +66,8 @@ final readonly class SymfonyRestOperations implements RestOperations
 			return new Response(204);
 		}
 
-		if ($callback = $options[self::OnEntity] ?? null) {
-			$return = $callback($entity);
-
-			if (is_object($return)) {
-				$entity = $return;
-			}
-		}
-
-		$em = $this->getEntityManager();
-		$em->persist($entity);
-
-		if ($callback = $options[self::BeforeFlush] ?? null) {
-			$callback($entity, $em);
-		}
-
-		$em->flush();
-
-		if ($callback = $options[self::AfterFlush] ?? null) {
-			$callback($entity, $em);
-		}
+		$this->callOnEntity($entity, $options);
+		$this->changeEntity($entity, EntityOperation::Create, $options);
 
 		return new SourceResponse($entity, [
 			new SerializationInstruction($options[self::SerializationContext] ?? []),
@@ -101,21 +84,8 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('read');
 		}
 
-		$entity = $this->findEntity($id);
-
-		if (!$entity) {
-			throw new NotFoundHttpException(
-				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
-			);
-		}
-
-		if ($callback = $options[self::OnEntity] ?? null) {
-			$return = $callback($entity);
-
-			if (is_object($return)) {
-				$entity = $return;
-			}
-		}
+		$entity = $this->getEntity($id);
+		$this->callOnEntity($entity, $options);
 
 		if ($guardMode & self::GuardOnEntity) {
 			$this->requirePermission('read', $entity);
@@ -136,13 +106,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('update');
 		}
 
-		$entity = $this->findEntity($id);
-
-		if (!$entity) {
-			throw new NotFoundHttpException(
-				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
-			);
-		}
+		$entity = $this->getEntity($id);
 
 		if ($guardMode & self::GuardOnEntity) {
 			$this->requirePermission('update', $entity);
@@ -154,26 +118,8 @@ final readonly class SymfonyRestOperations implements RestOperations
 			return new Response(204);
 		}
 
-		if ($callback = $options[self::OnEntity] ?? null) {
-			$return = $callback($entity);
-
-			if (is_object($return)) {
-				$entity = $return;
-			}
-		}
-
-		$em = $this->getEntityManager();
-		$em->persist($entity);
-
-		if ($callback = $options[self::BeforeFlush] ?? null) {
-			$callback($entity, $em);
-		}
-
-		$em->flush();
-
-		if ($callback = $options[self::AfterFlush] ?? null) {
-			$callback($entity, $em);
-		}
+		$this->callOnEntity($entity, $options);
+		$this->changeEntity($entity, EntityOperation::Update, $options);
 
 		return new SourceResponse($entity, [
 			new SerializationInstruction($options[self::SerializationContext] ?? []),
@@ -190,57 +136,16 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('delete');
 		}
 
-		$entity = $this->findEntity($id);
-
-		if (!$entity) {
-			throw new NotFoundHttpException(
-				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
-			);
-		}
-
-		if ($callback = $options[self::OnEntity] ?? null) {
-			$return = $callback($entity);
-
-			if (is_object($return)) {
-				$entity = $return;
-			}
-		}
+		$entity = $this->getEntity($id);
+		$this->callOnEntity($entity, $options);
 
 		if ($guardMode & self::GuardOnEntity) {
 			$this->requirePermission('delete', $entity);
 		}
 
-		$em = $this->getEntityManager();
-		$em->remove($entity);
-
-		if ($callback = $options[self::BeforeFlush] ?? null) {
-			$callback($entity, $em);
-		}
-
-		$em->flush();
-
-		if ($callback = $options[self::AfterFlush] ?? null) {
-			$callback($entity, $em);
-		}
+		$this->changeEntity($entity, EntityOperation::Delete, $options);
 
 		return new Response(204);
-	}
-
-	private function findEntity(mixed $id): ?object
-	{
-		if ($this->appEnv->isStaging() && ($fixture = $this->getFixture()) && $fixture instanceof StagingReadyFixture) {
-			if (is_array($id)) {
-				return $fixture->make($id);
-			} else {
-				$classMetadata = $this->getEntityManager()->getClassMetadata($this->entityName);
-
-				return $fixture->make([
-					$classMetadata->getSingleIdentifierFieldName() => $id,
-				]);
-			}
-		}
-
-		return $this->getEntityManager()->find($this->entityName, $id);
 	}
 
 	/**
@@ -343,6 +248,89 @@ final readonly class SymfonyRestOperations implements RestOperations
 			fn (int $guardMode, array $options): ResponseInterface => $this->delete($id, $guardMode, $options),
 			$this->guardNamespace ? self::GuardOnEntity : self::NoGuard,
 		);
+	}
+
+	/**
+	 * @return T
+	 */
+	private function getEntity(mixed $id): object
+	{
+		$entity = $this->findEntity($id);
+
+		if (!$entity) {
+			throw new NotFoundHttpException(
+				sprintf('Entity %s with id %s not found', $this->entityName, DebugHelper::stringifyMixed($id)),
+			);
+		}
+
+		return $entity;
+	}
+
+	/**
+	 * @param T $entity
+	 * @param mixed[] $options
+	 * @return T
+	 */
+	private function callOnEntity(object $entity, array $options): object
+	{
+		$fn = $options[self::OnEntity] ?? null;
+
+		if ($fn) {
+			/** @var T|null $return */
+			$return = $fn($entity);
+
+			if (is_object($return)) {
+				$entity = $return;
+			}
+		}
+
+		return $entity;
+	}
+
+	/**
+	 * @return T|null
+	 */
+	private function findEntity(mixed $id): ?object
+	{
+		if ($this->appEnv->isStaging() && ($fixture = $this->getFixture()) && $fixture instanceof StagingReadyFixture) {
+			if (is_array($id)) {
+				/** @var T */
+				return $fixture->make($id);
+			} else {
+				$classMetadata = $this->getEntityManager()->getClassMetadata($this->entityName);
+
+				/** @var T */
+				return $fixture->make([
+					$classMetadata->getSingleIdentifierFieldName() => $id,
+				]);
+			}
+		}
+
+		return $this->getEntityManager()->find($this->entityName, $id);
+	}
+
+	/**
+	 * @param mixed[] $options
+	 */
+	private function changeEntity(object $entity, EntityOperation $operation, array $options): void
+	{
+		$em = $this->getEntityManager();
+
+		if ($operation === EntityOperation::Delete) {
+			$em->remove($entity);
+		} else {
+			$em->persist($entity);
+		}
+
+		if ($callback = $options[self::BeforeFlush] ?? null) {
+			$callback($entity, $em);
+		}
+
+		$em->flush();
+
+		if ($callback = $options[self::AfterFlush] ?? null) {
+			$callback($entity, $em);
+		}
 	}
 
 }
