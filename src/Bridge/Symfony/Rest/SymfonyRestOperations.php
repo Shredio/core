@@ -3,6 +3,8 @@
 namespace Shredio\Core\Bridge\Symfony\Rest;
 
 use Doctrine\ORM\EntityManagerInterface;
+use Nette\Utils\FileSystem;
+use Nette\Utils\Json;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
@@ -13,6 +15,7 @@ use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Fixture\StagingReadyFixture;
 use Shredio\Core\Package\Instruction\SerializationInstruction;
 use Shredio\Core\Package\Response\SourceResponse;
+use Shredio\Core\Path\Directories;
 use Shredio\Core\Rest\Operation\EntityOperation;
 use Shredio\Core\Rest\RestOperationBuilder;
 use Shredio\Core\Rest\RestOperations;
@@ -41,6 +44,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		private EntityFactory $entityFactory,
 		private AppEnvironment $appEnv,
 		private Security $security,
+		private Directories $directories,
 		private ?FixtureRegistry $fixtureRegistry,
 		private array $defaultOptions = [],
 	)
@@ -64,6 +68,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('read');
 		}
 
+		$stagingResponse = $this->tryFindStagingResponse($options);
+
+		if ($stagingResponse !== null) {
+			return new SourceResponse($stagingResponse);
+		}
+
 		$entity = $this->getEntityByCriteria($criteria, $orderBy);
 		$this->callOnEntity($entity, $options);
 
@@ -84,6 +94,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		if ($guardMode & self::GuardOnAttribute) {
 			$this->requirePermission('create');
+		}
+
+		$stagingResponse = $this->tryFindStagingResponse($options);
+
+		if ($stagingResponse !== null) {
+			return new SourceResponse($stagingResponse);
 		}
 
 		$entity = $this->entityFactory->create($this->entityName, $values);
@@ -397,6 +413,28 @@ final readonly class SymfonyRestOperations implements RestOperations
 		if ($callback = $options[self::AfterFlush] ?? null) {
 			$callback($entity, $em);
 		}
+	}
+
+	/**
+	 * @param mixed[] $options
+	 */
+	private function tryFindStagingResponse(array $options): mixed
+	{
+		if (!$this->appEnv->isStaging()) {
+			return null;
+		}
+
+		$path = $options[self::StagingSimpleJson] ?? null;
+
+		if (!is_string($path)) {
+			return null;
+		}
+
+		if (!FileSystem::isAbsolute($path)) {
+			$path = $this->directories->get('staging') . '/' . $path;
+		}
+
+		return Json::decode(FileSystem::read($path), true);
 	}
 
 }

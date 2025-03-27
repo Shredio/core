@@ -5,6 +5,7 @@ namespace Shredio\Core\Bridge\Symfony\Rest;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
 use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
+use Shredio\Core\Path\Directories;
 use Shredio\Core\Rest\RestOperations;
 use Shredio\Core\Rest\RestOperationsFactory;
 use Symfony\Bundle\SecurityBundle\Security;
@@ -18,6 +19,7 @@ final readonly class SymfonyRestOperationsFactory implements RestOperationsFacto
 		private EntityFactory $entityFactory,
 		private AppEnvironment $appEnv,
 		private Security $security,
+		private Directories $directories,
 		private ?FixtureRegistry $fixtureRegistry,
 	)
 	{
@@ -38,6 +40,7 @@ final readonly class SymfonyRestOperationsFactory implements RestOperationsFacto
 			$this->entityFactory,
 			$this->appEnv,
 			$this->security,
+			$this->directories,
 			$this->fixtureRegistry,
 			$defaultOptions,
 		);

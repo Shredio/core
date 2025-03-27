@@ -34,6 +34,20 @@ final class RestOperationBuilder
 	/**
 	 * @return self<T>
 	 */
+	public function stagingSimpleJson(string $path): self
+	{
+		if (!in_array($this->type, ['read', 'findOne'], true)) {
+			throw new LogicException('Staging simple json is only available for read and findOne operations.');
+		}
+
+		$this->options[RestOperations::StagingSimpleJson] = $path;
+
+		return $this;
+	}
+
+	/**
+	 * @return self<T>
+	 */
 	public function validationMode(bool $enabled = true): self
 	{
 		if (!in_array($this->type, ['create', 'update'], true)) {

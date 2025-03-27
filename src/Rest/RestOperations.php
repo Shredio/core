@@ -14,6 +14,7 @@ interface RestOperations
 	public const string BeforeFlush = 'beforeFlush';
 	public const string AfterFlush = 'afterFlush';
 	public const string OnEntity = 'onEntity';
+	public const string StagingSimpleJson = 'stagingSimpleJson';
 
 	public const int NoGuard = 0;
 	public const int GuardOnEntity = 1;
