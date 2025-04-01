@@ -13,10 +13,6 @@ interface AppEnvironment
 
 	public function isTesting(): bool;
 
-	public function isRuntimeProduction(): bool;
-
-	public function isRuntimeLocal(): bool;
-
 	public function isDebugMode(): bool;
 
 }

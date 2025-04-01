@@ -5,7 +5,6 @@ namespace Shredio\Core\Bridge\Symfony\Environment;
 use Shredio\Core\Environment\AppEnvironment;
 use Shredio\Core\Environment\EnvVars;
 use Symfony\Component\DependencyInjection\Attribute\Autowire;
-use Symfony\Component\HttpKernel\KernelInterface;
 
 final readonly class SymfonyAppEnvironment implements AppEnvironment
 {
@@ -14,13 +13,10 @@ final readonly class SymfonyAppEnvironment implements AppEnvironment
 	private const array DevelopmentEnvironments = ['dev' => true, 'development' => true];
 	private const array StagingEnvironments = ['stage' => true, 'staging' => true];
 	private const array TestingEnvironment = ['test' => true];
-	private const array LocalEnvironment = ['local' => true];
 
 	public function __construct(
 		#[Autowire(param: 'kernel.environment')]
 		private string $environment,
-		#[Autowire(param: 'kernel.runtime_environment')]
-		private string $runtimeEnvironment,
 		#[Autowire(param: 'kernel.debug')]
 		private bool $debugMode,
 	)
@@ -31,7 +27,6 @@ final readonly class SymfonyAppEnvironment implements AppEnvironment
 	{
 		return new self(
 			EnvVars::getString('APP_ENV'),
-			EnvVars::getString('APP_RUNTIME_ENV'),
 			EnvVars::getBoolean('APP_DEBUG'),
 		);
 	}
@@ -54,16 +49,6 @@ final readonly class SymfonyAppEnvironment implements AppEnvironment
 	public function isTesting(): bool
 	{
 		return isset(self::TestingEnvironment[$this->environment]);
-	}
-
-	public function isRuntimeProduction(): bool
-	{
-		return isset(self::ProductionEnvironments[$this->runtimeEnvironment]);
-	}
-
-	public function isRuntimeLocal(): bool
-	{
-		return isset(self::LocalEnvironment[$this->runtimeEnvironment]);
 	}
 
 	public function isDebugMode(): bool

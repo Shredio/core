@@ -46,7 +46,6 @@ use Shredio\Core\Entity\EntityFactory;
 use Shredio\Core\Entity\Metadata\ContextExtractor;
 use Shredio\Core\Entity\SymfonyEntityFactory;
 use Shredio\Core\Environment\AppEnvironment;
-use Shredio\Core\Environment\EnvVars;
 use Shredio\Core\Format\Formatter\BigMoneyFormatter;
 use Shredio\Core\Format\Formatter\DaysFormatter;
 use Shredio\Core\Format\Formatter\DecimalFormatter;
@@ -113,9 +112,6 @@ final class CoreBundle extends AbstractBundle
 	 */
 	public function loadExtension(array $config, ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
-		EnvVars::require('APP_ENV', 'The environment the application is running in.');
-		EnvVars::require('APP_RUNTIME_ENV', 'The runtime environment the application is running in.');
-
 		if ($container->env() === 'test') {
 			$this->loadTest($container, $builder);
 		}

@@ -83,7 +83,7 @@ final class ErrorListener
 
 	private function includeInternalMessage(): bool
 	{
-		return !$this->appEnv->isRuntimeProduction();
+		return !$this->appEnv->isProduction();
 	}
 
 	private function createResponseForSymfonyHttpException(SymfonyHttpException $throwable): Response

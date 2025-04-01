@@ -20,7 +20,7 @@ final readonly class ErrorsPayloadProcessor
 	 */
 	public function process(ErrorsPayload $errors, ?bool $debugMode = null): array
 	{
-		return $errors->toArray($this->translator, $debugMode ?? $this->appEnv->isRuntimeProduction());
+		return $errors->toArray($this->translator, $debugMode ?? $this->appEnv->isProduction());
 	}
 
 	/**
