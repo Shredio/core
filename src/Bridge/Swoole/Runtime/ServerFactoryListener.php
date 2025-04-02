@@ -17,7 +17,9 @@ final class ServerFactoryListener extends ServerFactory
 			try {
 				$requestHandler($request, $response);
 			} catch (Throwable $exception) {
-				fwrite(STDOUT, ((string) $exception) . "\n");
+				if (defined('STDOUT')) {
+					fwrite(STDOUT, ((string) $exception) . "\n");
+				}
 
 				$response->status(500);
 				$response->end();

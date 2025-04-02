@@ -52,7 +52,9 @@ final class ErrorListener
 			$event->stopPropagation();
 			$event->setResponse($this->createResponseForSymfonyHttpException($throwable));
 		} else if ($this->staging) {
-			fwrite(STDOUT, (string) $throwable);
+			if (defined('STDOUT')) {
+				fwrite(STDOUT, (string) $throwable);
+			}
 
 			$event->stopPropagation();
 			$event->setResponse(new Response((string) $throwable, 500));
