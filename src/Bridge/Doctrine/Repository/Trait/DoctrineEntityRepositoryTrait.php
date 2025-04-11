@@ -53,6 +53,7 @@ trait DoctrineEntityRepositoryTrait
 	/**
 	 * @param TId $id
 	 * @return TEntity
+	 * @throws TException
 	 */
 	public function findStrict(mixed $id): object
 	{
