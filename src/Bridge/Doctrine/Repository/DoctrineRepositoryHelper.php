@@ -54,6 +54,22 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	}
 
 	/**
+	 * Finds entities by a set of IDs.
+	 *
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @param mixed[] $ids
+	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
+	 * @return T[]
+	 */
+	public function findById(string $entity, array $ids, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
+	{
+		$primaryId = $this->getMetadata($entity)->getSingleIdentifierFieldName();
+
+		return $this->findBy($entity, [$primaryId => $ids], $orderBy, $limit, $offset);
+	}
+
+	/**
 	 * Finds a single entity by a set of criteria.
 	 *
 	 * @template T of object
