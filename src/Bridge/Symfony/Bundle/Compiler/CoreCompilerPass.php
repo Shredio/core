@@ -19,16 +19,10 @@ final class CoreCompilerPass implements CompilerPassInterface
 
 	public function process(ContainerBuilder $container): void
 	{
-		$isApi = (bool) $container->getParameter('core.api');
-
 		// Cache Marshaller
 		if (extension_loaded('igbinary')) {
 			$container->getDefinition('cache.default_marshaller')
 				->setArgument('$useIgbinarySerialize', true);
-		}
-
-		if ($isApi) {
-			$this->processApiErrors($container);
 		}
 
 		$this->processDoctrineTypes($container);
@@ -149,13 +143,6 @@ final class CoreCompilerPass implements CompilerPassInterface
 
 			return $class;
 		}
-	}
-
-	private function processApiErrors(ContainerBuilder $container): void
-	{
-		// change the default format to JSON for 400-499 status codes
-		$container->getDefinition('error_handler.error_renderer.serializer')
-			->setArgument('$format', new Reference('core.error_renderer.formats'));
 	}
 
 }
