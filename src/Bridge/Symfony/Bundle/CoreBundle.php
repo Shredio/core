@@ -16,6 +16,7 @@ use Shredio\Core\Bridge\Symfony\Bundle\Compiler\CoreCompilerPass;
 use Shredio\Core\Bridge\Symfony\Bundle\Compiler\PackagerCompilerPass;
 use Shredio\Core\Bridge\Symfony\Cache\SymfonyCacheFactory;
 use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
+use Shredio\Core\Bridge\Symfony\Error\CustomProblemNormalizer;
 use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Shredio\Core\Bridge\Symfony\Error\ProblemNormalizer;
 use Shredio\Core\Bridge\Symfony\Error\SerializerErrorRenderFormats;
@@ -489,7 +490,10 @@ final class CoreBundle extends AbstractBundle
 		// removes type and title from the problem response
 		$services->set(ProblemNormalizer::class)
 			->decorate('serializer.normalizer.problem')
-			->args([service('.inner')]);
+			->args([service('.inner'), tagged_iterator('core.problem_normalizer')]);
+
+		$builder->registerForAutoconfiguration(CustomProblemNormalizer::class)
+			->addTag('core.problem_normalizer');
 	}
 
 }

@@ -2,16 +2,23 @@
 
 namespace Shredio\Core\Bridge\Symfony\Error;
 
+use InvalidArgumentException;
+use Symfony\Component\ErrorHandler\Exception\FlattenException;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Symfony\Component\Serializer\Normalizer\ProblemNormalizer as SymfonyProblemNormalizer;
 use Symfony\Component\Serializer\SerializerAwareInterface;
 use Symfony\Component\Serializer\SerializerInterface;
+use function sprintf;
 
 final readonly class ProblemNormalizer implements NormalizerInterface, SerializerAwareInterface
 {
 
+	/**
+	 * @param iterable<CustomProblemNormalizer> $normalizers
+	 */
 	public function __construct(
 		private SymfonyProblemNormalizer $normalizer,
+		private iterable $normalizers,
 	)
 	{
 	}
@@ -27,7 +34,15 @@ final readonly class ProblemNormalizer implements NormalizerInterface, Serialize
 		array $context = [],
 	): array
 	{
+		if (!$data instanceof FlattenException) {
+			throw new InvalidArgumentException(sprintf('The object must implement "%s".', FlattenException::class));
+		}
+
 		$ret = $this->normalizer->normalize($data, $format, $context);
+
+		foreach ($this->normalizers as $normalizer) {
+			$ret = $normalizer->normalize($data, $ret);
+		}
 
 		unset($ret[SymfonyProblemNormalizer::TYPE]);
 		unset($ret[SymfonyProblemNormalizer::TITLE]);
