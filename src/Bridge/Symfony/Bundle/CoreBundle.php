@@ -19,7 +19,6 @@ use Shredio\Core\Bridge\Symfony\Environment\SymfonyAppEnvironment;
 use Shredio\Core\Bridge\Symfony\Error\CustomProblemNormalizer;
 use Shredio\Core\Bridge\Symfony\Error\ErrorListener;
 use Shredio\Core\Bridge\Symfony\Error\ProblemNormalizer;
-use Shredio\Core\Bridge\Symfony\Error\SerializerErrorRenderFormats;
 use Shredio\Core\Bridge\Symfony\Extension\SymfonyExtensionHelper;
 use Shredio\Core\Bridge\Symfony\Http\PsrRequestResolver;
 use Shredio\Core\Bridge\Symfony\Middleware\PackagingMiddleware;
@@ -481,11 +480,6 @@ final class CoreBundle extends AbstractBundle
 	private function loadApi(ContainerConfigurator $container, ContainerBuilder $builder): void
 	{
 		$services = $container->services();
-
-		// change the default format to JSON for 400-499 status codes
-		$services->set('core.error_renderer.formats', SerializerErrorRenderFormats::class)
-			->private()
-			->args([service('request_stack')]);
 
 		// removes type and title from the problem response
 		$services->set(ProblemNormalizer::class)
