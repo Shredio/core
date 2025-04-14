@@ -46,7 +46,8 @@
 		"symfony/browser-kit": "^7.2",
 		"shredio/messenger": "^1.0",
 		"symfony/messenger": "^7.2",
-		"swoole/ide-helper": "^6.0"
+		"swoole/ide-helper": "^6.0",
+		"dama/doctrine-test-bundle": "^8.3"
 	},
 	"config": {
 		"allow-plugins": {

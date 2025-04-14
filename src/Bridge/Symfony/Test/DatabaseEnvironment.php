@@ -2,6 +2,7 @@
 
 namespace Shredio\Core\Bridge\Symfony\Test;
 
+use DAMA\DoctrineTestBundle\Doctrine\DBAL\StaticDriver;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\Persistence\ManagerRegistry;
 use LogicException;
@@ -69,6 +70,12 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 				$em->clear();
 			}
 		}
+	}
+
+	protected function commitTransactionForDebugging(): void
+	{
+		StaticDriver::commit();
+		StaticDriver::beginTransaction();
 	}
 
 	protected function assertEntity(string $entity): AssertEntity
