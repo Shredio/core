@@ -78,7 +78,23 @@ trait DatabaseEnvironment // @phpstan-ignore-line
 		StaticDriver::beginTransaction();
 	}
 
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @return AssertEntity<T>
+	 * @deprecated use entity() instead
+	 */
 	protected function assertEntity(string $entity): AssertEntity
+	{
+		return $this->entity($entity);
+	}
+
+	/**
+	 * @template T of object
+	 * @param class-string<T> $entity
+	 * @return AssertEntity<T>
+	 */
+	protected function entity(string $entity): AssertEntity
 	{
 		return new AssertEntity($entity, $this->getEntityManager($entity));
 	}
