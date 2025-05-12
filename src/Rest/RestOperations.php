@@ -16,6 +16,8 @@ interface RestOperations
 	public const string AfterFlush = 'afterFlush';
 	public const string OnEntity = 'onEntity';
 	public const string StagingSimpleJson = 'stagingSimpleJson';
+	public const string InstructionBeforeSerialization = 'instructionBeforeSerialization';
+	public const string InstructionAfterSerialization = 'instructionAfterSerialization';
 
 	public const int NoGuard = 0;
 	public const int GuardOnEntity = 1;

@@ -81,9 +81,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('read', $entity);
 		}
 
-		return new SourceResponse($entity, [
-			new SerializationInstruction($options[self::SerializationContext] ?? []),
-		]);
+		return $this->createResponse($entity, $options);
 	}
 
 	public function create(array $values, ?int $guardMode = null, array $options = []): ResponseInterface
@@ -115,9 +113,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$this->callOnEntity($entity, $options);
 		$this->changeEntity($entity, EntityOperation::Create, $options);
 
-		return new SourceResponse($entity, [
-			new SerializationInstruction($options[self::SerializationContext] ?? []),
-		]);
+		return $this->createResponse($entity, $options);
 	}
 
 	public function read(mixed $id, ?int $guardMode = null, array $options = []): ResponseInterface
@@ -137,9 +133,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 			$this->requirePermission('read', $entity);
 		}
 
-		return new SourceResponse($entity, [
-			new SerializationInstruction($options[self::SerializationContext] ?? []),
-		]);
+		return $this->createResponse($entity, $options);
 	}
 
 	public function update(mixed $id, array $values, ?int $guardMode = null, array $options = []): ResponseInterface
@@ -167,9 +161,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$this->callOnEntity($entity, $options);
 		$this->changeEntity($entity, EntityOperation::Update, $options);
 
-		return new SourceResponse($entity, [
-			new SerializationInstruction($options[self::SerializationContext] ?? []),
-		]);
+		return $this->createResponse($entity, $options);
 	}
 
 	public function delete(mixed $id, ?int $guardMode = null, array $options = []): ResponseInterface
@@ -197,8 +189,12 @@ final readonly class SymfonyRestOperations implements RestOperations
 	/**
 	 * @return Fixture<object>|null
 	 */
-	private function getFixture(): ?Fixture
+	private function getStagingFixture(): ?Fixture
 	{
+		if (!$this->appEnv->isStaging()) {
+			return null;
+		}
+
 		if (!$this->fixtureRegistry) {
 			return null;
 		}
@@ -210,7 +206,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 				continue;
 			}
 
-			if ($key->getClassName() === $this->entityName) {
+			if ($key->getClassName() === $this->entityName && $fixture instanceof StagingReadyFixture) {
 				return $fixture;
 			}
 		}
@@ -364,21 +360,35 @@ final readonly class SymfonyRestOperations implements RestOperations
 	 */
 	private function findEntityById(mixed $id): ?object
 	{
-		if ($this->appEnv->isStaging() && ($fixture = $this->getFixture()) && $fixture instanceof StagingReadyFixture) {
-			if (is_array($id)) {
-				/** @var T */
-				return $fixture->make($id);
-			} else {
-				$classMetadata = $this->getEntityManager()->getClassMetadata($this->entityName);
-
-				/** @var T */
-				return $fixture->make([
-					$classMetadata->getSingleIdentifierFieldName() => $id,
-				]);
-			}
+		if ($stagingEntity = $this->makeStagingEntity($id)) {
+			return $stagingEntity;
 		}
 
 		return $this->getEntityManager()->find($this->entityName, $id);
+	}
+
+	/**
+	 * @return T|null
+	 */
+	private function makeStagingEntity(mixed $value): ?object
+	{
+		$fixture = $this->getStagingFixture();
+
+		if (!$fixture) {
+			return null;
+		}
+
+		if (is_array($value)) {
+			/** @var T */
+			return $fixture->make($value);
+		}
+
+		$classMetadata = $this->getEntityManager()->getClassMetadata($this->entityName);
+
+		/** @var T */
+		return $fixture->make([
+			$classMetadata->getSingleIdentifierFieldName() => $value,
+		]);
 	}
 
 	/**
@@ -388,6 +398,10 @@ final readonly class SymfonyRestOperations implements RestOperations
 	 */
 	private function findEntityByCriteria(array $criteria, array $orderBy): ?object
 	{
+		if ($stagingEntity = $this->makeStagingEntity($criteria)) {
+			return $stagingEntity;
+		}
+
 		return (new DoctrineRepositoryHelper($this->registry))->findOneBy($this->entityName, $criteria, $orderBy);
 	}
 
@@ -435,6 +449,25 @@ final readonly class SymfonyRestOperations implements RestOperations
 		}
 
 		return Json::decode(FileSystem::read($path), true);
+	}
+
+	/**
+	 * @param T $entity
+	 * @param mixed[] $options
+	 */
+	private function createResponse(object $entity, array $options): ResponseInterface
+	{
+		$beforeSerialization = $options[RestOperations::InstructionBeforeSerialization] ?? [];
+		$afterSerialization = $options[RestOperations::InstructionAfterSerialization] ?? [];
+
+		assert(is_array($beforeSerialization));
+		assert(is_array($afterSerialization));
+
+		$instructions = $beforeSerialization;
+		$instructions[] = new SerializationInstruction($options[self::SerializationContext] ?? []);
+		$instructions = array_merge($instructions, $afterSerialization);
+
+		return new SourceResponse($entity, $instructions);
 	}
 
 }

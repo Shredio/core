@@ -5,6 +5,7 @@ namespace Shredio\Core\Rest;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Psr\Http\Message\ResponseInterface;
+use Shredio\Core\Package\Instruction\PackingInstruction;
 
 /**
  * @template T of object
@@ -55,6 +56,26 @@ final class RestOperationBuilder
 		}
 
 		$this->options[RestOperations::ValidationMode] = $enabled;
+
+		return $this;
+	}
+
+	/**
+	 * @return self<T>
+	 */
+	public function instructionBeforeSerialization(PackingInstruction $instruction): self
+	{
+		$this->options[RestOperations::InstructionBeforeSerialization][] = $instruction;
+
+		return $this;
+	}
+
+	/**
+	 * @return self<T>
+	 */
+	public function instructionAfterSerialization(PackingInstruction $instruction): self
+	{
+		$this->options[RestOperations::InstructionAfterSerialization][] = $instruction;
 
 		return $this;
 	}
