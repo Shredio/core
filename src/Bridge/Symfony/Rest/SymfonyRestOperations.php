@@ -379,6 +379,20 @@ final readonly class SymfonyRestOperations implements RestOperations
 		}
 
 		if (is_array($value)) {
+			foreach ($value as $field => $val) {
+				if (str_contains($field, ' ')) {
+					unset($value[$field]);
+				} else if (is_array($val)) {
+					$firstKey = array_key_first($val);
+
+					if ($firstKey === null) {
+						unset($value[$field]);
+					} else {
+						$value[$field] = $val[$firstKey];
+					}
+				}
+			}
+
 			/** @var T */
 			return $fixture->make($value);
 		}
