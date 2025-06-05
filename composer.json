@@ -5,7 +5,8 @@
 	"require": {
 		"php": ">=8.3",
 		"marcj/topsort": "^2.0",
-		"psr/simple-cache": "^3.0"
+		"psr/simple-cache": "^3.0",
+		"shredio/rapid-database-operations": "dev-master"
 	},
 	"autoload": {
 		"psr-4": {

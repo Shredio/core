@@ -9,8 +9,8 @@ use Shredio\Core\Bridge\Doctrine\Query\QueryBuilder;
 use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryHelper;
 use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryServices;
 use Shredio\Core\Bridge\Doctrine\Schema\SchemaResolver;
-use Shredio\Core\Database\Rapid\EntityRapidOperationFactory;
 use Shredio\Core\Exception\RecordNotFoundException;
+use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 
 /**
  * @template TEntity of object
@@ -20,7 +20,7 @@ use Shredio\Core\Exception\RecordNotFoundException;
 trait DoctrineEntityRepositoryTrait
 {
 
-	protected readonly EntityRapidOperationFactory $rapidOperationFactory;
+	protected readonly RapidOperationFactory $rapidOperationFactory;
 
 	protected readonly DoctrineRepositoryHelper $helper;
 

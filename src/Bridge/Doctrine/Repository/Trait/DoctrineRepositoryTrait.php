@@ -9,12 +9,12 @@ use Shredio\Core\Bridge\Doctrine\Query\QueryBuilder;
 use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryHelper;
 use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryServices;
 use Shredio\Core\Bridge\Doctrine\Schema\SchemaResolver;
-use Shredio\Core\Database\Rapid\EntityRapidOperationFactory;
+use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 
 trait DoctrineRepositoryTrait
 {
 
-	protected readonly EntityRapidOperationFactory $rapidOperationFactory;
+	protected readonly RapidOperationFactory $rapidOperationFactory;
 
 	protected readonly DoctrineRepositoryHelper $helper;
 
