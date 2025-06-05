@@ -6,7 +6,7 @@
 		"php": ">=8.3",
 		"marcj/topsort": "^2.0",
 		"psr/simple-cache": "^3.0",
-		"shredio/rapid-database-operations": "dev-master"
+		"shredio/rapid-database-operations": "^1.0"
 	},
 	"autoload": {
 		"psr-4": {
