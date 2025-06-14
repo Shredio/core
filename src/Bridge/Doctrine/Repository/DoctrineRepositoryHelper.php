@@ -45,11 +45,11 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @param class-string<T> $entity
 	 * @param array<string, mixed> $criteria
 	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
-	 * @return T[]
+	 * @return list<T>
 	 */
 	public function findBy(string $entity, array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
 	{
-		/** @var T[] */
+		/** @var list<T> */
 		return $this->getRepository($entity)->findBy($criteria, $orderBy, $limit, $offset);
 	}
 
@@ -60,7 +60,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @param class-string<T> $entity
 	 * @param mixed[] $ids
 	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
-	 * @return T[]
+	 * @return list<T>
 	 */
 	public function findById(string $entity, array $ids, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
 	{
