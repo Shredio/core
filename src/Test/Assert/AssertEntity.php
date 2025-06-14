@@ -5,6 +5,7 @@ namespace Shredio\Core\Test\Assert;
 use Doctrine\DBAL\Types\Type;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Mapping\ClassMetadata;
+use Doctrine\ORM\Mapping\ManyToOneAssociationMapping;
 use Doctrine\ORM\Query;
 use PHPUnit\Framework\Assert;
 use Shredio\Core\Struct\SinglePassIndex;
@@ -65,27 +66,27 @@ final readonly class AssertEntity
 		$converters = [];
 
 		foreach ($metadata->fieldMappings as $mapping) {
-			if ($fieldsToSelect?->has($mapping['fieldName']) === false) {
+			if ($fieldsToSelect?->has($mapping->fieldName) === false) {
 				continue;
 			}
 
-			$select[] = sprintf('e.%s AS %s', $mapping['fieldName'], $mapping['fieldName']);
+			$select[] = sprintf('e.%s AS %s', $mapping->fieldName, $mapping->fieldName);
 
-			if ($mapping['type'] === 'uuid') {
-				$type = Type::getType($mapping['type']);
+			if ($mapping->type === 'uuid') {
+				$type = Type::getType($mapping->type);
 
-				$converters[$mapping['fieldName']] = static fn (mixed $value): string => (string) $type->convertToPHPValue($value, $platform);
+				$converters[$mapping->fieldName] = static fn (mixed $value): string => (string) $type->convertToPHPValue($value, $platform);
 			}
 		}
 
 		if ($associations) {
 			foreach ($metadata->associationMappings as $mapping) {
-				if ($fieldsToSelect?->has($mapping['fieldName']) === false) {
+				if ($fieldsToSelect?->has($mapping->fieldName) === false) {
 					continue;
 				}
 
-				if ($mapping['type'] === ClassMetadata::MANY_TO_ONE) {
-					$select[] = sprintf('IDENTITY(e.%s) AS %s', $mapping['fieldName'], $mapping['fieldName']);
+				if ($mapping instanceof ManyToOneAssociationMapping) {
+					$select[] = sprintf('IDENTITY(e.%s) AS %s', $mapping->fieldName, $mapping->fieldName);
 				}
 			}
 		}
