@@ -53,7 +53,7 @@ final class PeclSet extends Set
 	}
 
 	/**
-	 * @return T[]
+	 * @return list<T>
 	 */
 	public function toArray(): array
 	{

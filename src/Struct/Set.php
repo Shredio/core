@@ -78,7 +78,7 @@ abstract class Set implements IteratorAggregate, Countable
 	abstract public function clear(): void;
 
 	/**
-	 * @return T[]
+	 * @return list<T>
 	 */
 	abstract public function toArray(): array;
 
