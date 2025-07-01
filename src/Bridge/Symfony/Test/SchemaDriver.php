@@ -14,6 +14,9 @@ use SensitiveParameter;
 final class SchemaDriver extends AbstractDriverMiddleware
 {
 
+	private const string DisableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS=0;\n";
+	private const string EnableForeignKeyChecks = "SET FOREIGN_KEY_CHECKS=1;\n";
+
 	/** @var array<string, boolean> */
 	private static array $created = [];
 
@@ -57,30 +60,52 @@ final class SchemaDriver extends AbstractDriverMiddleware
 
 	private function getSql(string $managerName): string
 	{
-		$em = $this->registry->getManager($managerName);
+		$connection = $this->registry->getConnection($managerName);
+		$managers = [];
 
-		assert($em instanceof EntityManagerInterface);
+		foreach ($this->registry->getManagers() as $manager) {
+			if ($manager instanceof EntityManagerInterface && $manager->getConnection() === $connection) {
+				$managers[] = $manager;
+			}
+		}
 
-		$metadataClasses = $em->getMetadataFactory()->getAllMetadata();
+		$dropSql = '';
+		$createSql = '';
 
-		$dropSql = $this->getDropSchemaSql($metadataClasses);
-		$createSql = (new SchemaTool($em))->getCreateSchemaSql($metadataClasses);
+		foreach ($managers as $em) {
+			$metadataClasses = $em->getMetadataFactory()->getAllMetadata();
 
-		return sprintf("%s;\n%s;", $dropSql, implode(";\n", $createSql));
+			$dropSql .= $this->getDropSchemaSql($metadataClasses);
+			$createSql .= $this->getCreateSchemaSql($em, $metadataClasses);
+		}
+
+		return self::DisableForeignKeyChecks . $dropSql . self::EnableForeignKeyChecks . $createSql;
 	}
 
 	/**
-	 * @param ClassMetadata<object>[] $metadataClasses
+	 * @param list<ClassMetadata<object>> $metadataClasses
+	 */
+	private function getCreateSchemaSql(EntityManagerInterface $em, array $metadataClasses): string
+	{
+		$list = (new SchemaTool($em))->getCreateSchemaSql($metadataClasses);
+
+		if (!$list) {
+			return '';
+		}
+
+		return implode(";\n", $list) . ";\n";
+	}
+
+	/**
+	 * @param list<ClassMetadata<object>> $metadataClasses
 	 */
 	private function getDropSchemaSql(array $metadataClasses): string
 	{
-		$sql = "SET FOREIGN_KEY_CHECKS=0;\n";
+		$sql = '';
 
 		foreach ($metadataClasses as $class) {
 			$sql .= sprintf("DROP TABLE IF EXISTS `%s`;\n", $class->getTableName());
 		}
-
-		$sql .= "SET FOREIGN_KEY_CHECKS=1";
 
 		return $sql;
 	}
