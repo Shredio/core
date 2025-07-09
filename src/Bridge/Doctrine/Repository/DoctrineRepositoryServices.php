@@ -5,6 +5,7 @@ namespace Shredio\Core\Bridge\Doctrine\Repository;
 use Doctrine\Persistence\ManagerRegistry;
 use Shredio\Core\Bridge\Doctrine\Query\QueryBuilderFactory;
 use Shredio\Core\Cache\CacheFactory;
+use Shredio\DoctrineQueries\DoctrineQueries;
 use Shredio\RapidDatabaseOperations\RapidOperationFactory;
 
 final readonly class DoctrineRepositoryServices
@@ -16,6 +17,7 @@ final readonly class DoctrineRepositoryServices
 		public DoctrineRepositoryHelper $helper,
 		public CacheFactory $cacheFactory,
 		public QueryBuilderFactory $queryBuilderFactory,
+		public DoctrineQueries $queries,
 	)
 	{
 	}
