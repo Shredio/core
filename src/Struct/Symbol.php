@@ -46,4 +46,9 @@ final readonly class Symbol implements Stringable, JsonSerializable
 		return $this->value;
 	}
 
+	public function toScalar(): string
+	{
+		return $this->value;
+	}
+
 }
