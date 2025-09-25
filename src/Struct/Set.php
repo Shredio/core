@@ -70,6 +70,7 @@ abstract class Set implements IteratorAggregate, Countable
 			return new PeclSet($values);
 		}
 
+		/** @var self<non-empty-string> */
 		return new ArraySet($values);
 	}
 
