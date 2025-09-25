@@ -61,6 +61,19 @@ abstract class Set implements IteratorAggregate, Countable
 	}
 
 	/**
+	 * @param iterable<non-empty-string> $values
+	 * @return self<non-empty-string>
+	 */
+	public function createNonEmptyString(iterable $values = []): self
+	{
+		if (self::usePecl()) {
+			return new PeclSet($values);
+		}
+
+		return new ArraySet($values);
+	}
+
+	/**
 	 * @param T $key
 	 */
 	abstract public function add(mixed $key): void;
