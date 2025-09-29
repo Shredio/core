@@ -5,6 +5,7 @@ namespace Shredio\Core\Rest;
 use Doctrine\ORM\EntityManagerInterface;
 use LogicException;
 use Psr\Http\Message\ResponseInterface;
+use Shredio\Auth\Requirement\Requirement;
 use Shredio\Core\Package\Instruction\PackingInstruction;
 
 /**
@@ -87,6 +88,17 @@ final class RestOperationBuilder
 	public function onEntity(callable $callback): self
 	{
 		$this->options[RestOperations::OnEntity] = $callback;
+
+		return $this;
+	}
+
+	/**
+	 * @param callable(T $entity): Requirement $callback
+	 * @return self<T>
+	 */
+	public function requirement(callable $callback): self
+	{
+		$this->options['requirement'] = $callback;
 
 		return $this;
 	}

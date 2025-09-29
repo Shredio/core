@@ -7,6 +7,7 @@ use Nette\Utils\FileSystem;
 use Nette\Utils\Json;
 use Nyholm\Psr7\Response;
 use Psr\Http\Message\ResponseInterface;
+use Shredio\Auth\Context\CurrentUserContext;
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
 use Shredio\Core\Bridge\Doctrine\Repository\DoctrineRepositoryHelper;
 use Shredio\Core\Common\Debug\DebugHelper;
@@ -45,6 +46,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		private AppEnvironment $appEnv,
 		private Security $security,
 		private Directories $directories,
+		private CurrentUserContext $currentUserContext,
 		private ?FixtureRegistry $fixtureRegistry,
 		private array $defaultOptions = [],
 	)
@@ -65,7 +67,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
 
 		if ($guardMode & self::GuardOnAttribute) {
-			$this->requirePermission('read');
+			$this->requirePermission('read', options: $options);
 		}
 
 		$stagingResponse = $this->tryFindStagingResponse($options);
@@ -77,8 +79,8 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$entity = $this->getEntityByCriteria($criteria, $orderBy);
 		$this->callOnEntity($entity, $options);
 
-		if ($guardMode & self::GuardOnEntity) {
-			$this->requirePermission('read', $entity);
+		if ($guardMode & self::GuardOnEntity || isset($options['requirement'])) {
+			$this->requirePermission('read', $entity, options: $options);
 		}
 
 		return $this->createResponse($entity, $options);
@@ -91,7 +93,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$guardMode ??= $this->guardNamespace ? self::GuardOnAttribute : self::NoGuard;
 
 		if ($guardMode & self::GuardOnAttribute) {
-			$this->requirePermission('create');
+			$this->requirePermission('create', options: $options);
 		}
 
 		$stagingResponse = $this->tryFindStagingResponse($options);
@@ -102,8 +104,8 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 		$entity = $this->entityFactory->create($this->entityName, $values);
 
-		if ($guardMode & self::GuardOnEntity) {
-			$this->requirePermission('create', $entity);
+		if ($guardMode & self::GuardOnEntity || isset($options['requirement'])) {
+			$this->requirePermission('create', $entity, options: $options);
 		}
 
 		if ($options[self::ValidationMode] ?? false) {
@@ -123,14 +125,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
 
 		if ($guardMode & self::GuardOnAttribute) {
-			$this->requirePermission('read');
+			$this->requirePermission('read', options: $options);
 		}
 
 		$entity = $this->getEntity($id);
 		$this->callOnEntity($entity, $options);
 
-		if ($guardMode & self::GuardOnEntity) {
-			$this->requirePermission('read', $entity);
+		if ($guardMode & self::GuardOnEntity || isset($options['requirement'])) {
+			$this->requirePermission('read', $entity, options: $options);
 		}
 
 		return $this->createResponse($entity, $options);
@@ -143,13 +145,13 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
 
 		if ($guardMode & self::GuardOnAttribute) {
-			$this->requirePermission('update');
+			$this->requirePermission('update', options: $options);
 		}
 
 		$entity = $this->getEntity($id);
 
-		if ($guardMode & self::GuardOnEntity) {
-			$this->requirePermission('update', $entity);
+		if ($guardMode & self::GuardOnEntity || isset($options['requirement'])) {
+			$this->requirePermission('update', $entity, options: $options);
 		}
 
 		$entity = $this->entityFactory->update($entity, $values);
@@ -171,14 +173,14 @@ final readonly class SymfonyRestOperations implements RestOperations
 		$guardMode ??= $this->guardNamespace ? self::GuardOnEntity : self::NoGuard;
 
 		if ($guardMode & self::GuardOnAttribute) {
-			$this->requirePermission('delete');
+			$this->requirePermission('delete', options: $options);
 		}
 
 		$entity = $this->getEntity($id);
 		$this->callOnEntity($entity, $options);
 
-		if ($guardMode & self::GuardOnEntity) {
-			$this->requirePermission('delete', $entity);
+		if ($guardMode & self::GuardOnEntity || isset($options['requirement'])) {
+			$this->requirePermission('delete', $entity, options: $options);
 		}
 
 		$this->changeEntity($entity, EntityOperation::Delete, $options);
@@ -214,8 +216,22 @@ final readonly class SymfonyRestOperations implements RestOperations
 		return null;
 	}
 
-	private function requirePermission(string $permission, ?object $source = null): void
+	/**
+	 * @param T|null $source
+	 * @param mixed[] $options
+	 */
+	private function requirePermission(string $permission, ?object $source = null, array $options = []): void
 	{
+		if ($source && isset($options['requirement'])) {
+			$fn = $options['requirement'];
+			$requirement = $fn($source);
+			if (!$this->currentUserContext->isSatisfied($requirement)) {
+				throw new AccessDeniedException(sprintf('Permission %s denied', $requirement::class));
+			}
+
+			return;
+		}
+
 		if (!$source && !$this->guardNamespace) {
 			return;
 		}

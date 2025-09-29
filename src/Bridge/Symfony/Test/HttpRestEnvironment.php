@@ -5,6 +5,7 @@ namespace Shredio\Core\Bridge\Symfony\Test;
 use Nyholm\Psr7\Factory\Psr17Factory;
 use PHPUnit\Framework\Attributes\After;
 use PHPUnit\Framework\Attributes\Before;
+use Shredio\Auth\Entity\InMemoryUserEntity;
 use Shredio\Core\Rest\Test\FakeRequest;
 use Shredio\Core\Rest\Test\FakeResponse;
 use Shredio\Core\Rest\Test\FakeRestClient;
@@ -50,12 +51,15 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 
 		$factory = new FakeRestClientFactory($this, function (FakeRequest $request) use ($client, $urlGenerator, $psrHttpFactory, $testHelper): FakeResponse {
 			$testBench = TestHelper::getTestBench($client->getKernel());
+			$language = null;
 
 			if ($actor = $request->actor) {
 				$testHelper->internals->tryFillActor($actor);
 
 				if ($signedActor = $actor->getSignedActor()) {
-					$testBench->loginUser(new InMemoryUser($signedActor->getId()->toOriginal(), $signedActor->getRoles(), $signedActor->getLanguage()));
+//					$testBench->loginUser(new InMemoryUser($signedActor->getId()->toOriginal(), $signedActor->getRoles(), $signedActor->getLanguage()));
+					$testBench->loginUser(new InMemoryUserEntity((string) $signedActor->getId()->toOriginal(), $signedActor->getRoles()));
+					$language = $signedActor->getLanguage()->value;
 				}
 			}
 
@@ -64,6 +68,10 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 
 			foreach ($request->headers as $name => $values) {
 				$server['HTTP_' . strtoupper(str_replace('-', '_', $name))] = implode(', ', $values);
+			}
+
+			if ($language !== null) {
+				$server['HTTP_X_LANGUAGE'] = $language;
 			}
 
 			$cookieJar = $client->getCookieJar();
