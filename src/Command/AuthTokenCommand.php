@@ -2,7 +2,6 @@
 
 namespace Shredio\Core\Command;
 
-use Shredio\Core\Intl\Language;
 use Shredio\Core\Security\AuthTokenProvider;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -28,15 +27,13 @@ final class AuthTokenCommand extends Command
 	protected function configure(): void
 	{
 		$this->addArgument('id', InputArgument::REQUIRED, 'User id.')
-			->addOption('role', 'r', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'User roles.', [])
-			->addOption('language', 'l', InputOption::VALUE_REQUIRED, 'User language.');
+			->addOption('role', 'r', InputOption::VALUE_REQUIRED | InputOption::VALUE_IS_ARRAY, 'User roles.', []);
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int
 	{
 		$id = $input->getArgument('id');
 		$roles = $this->getRoles($input);
-		$language = $this->getLanguage($input);
 
 		if (!is_string($id)) {
 			$output->writeln('ID must be a string.');
@@ -45,7 +42,7 @@ final class AuthTokenCommand extends Command
 		}
 
 		if ($roles) {
-			$token = $this->tokenProvider->createForApi($id, $roles, $language ?? Language::English);
+			$token = $this->tokenProvider->createForApi($id, $roles);
 		} else {
 			$token = $this->tokenProvider->create($id);
 		}
@@ -71,21 +68,6 @@ final class AuthTokenCommand extends Command
 		}
 
 		return $roles;
-	}
-
-	private function getLanguage(InputInterface $input): ?Language
-	{
-		$language = $input->getOption('language');
-
-		if (!is_string($language)) {
-			return null;
-		}
-
-		if (!$language) {
-			return null;
-		}
-
-		return Language::tryFrom($language);
 	}
 
 }

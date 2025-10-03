@@ -3,11 +3,10 @@
 namespace Shredio\Core\Bridge\Symfony\Security;
 
 use LogicException;
+use Shredio\Auth\Entity\InMemoryUserEntity;
 use Shredio\Core\Intl\Language;
-use Shredio\Core\Security\InMemoryUser;
 use Shredio\Core\Security\Token\Token;
 use Shredio\Core\Security\TokenProvider;
-use Shredio\Core\Security\UserEntity;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -76,25 +75,16 @@ final class SymfonyAuthenticator extends AbstractAuthenticator
 	/**
 	 * @param array<string, mixed> $attributes
 	 */
-	private function loadUser(string $identifier, array $attributes): UserEntity
+	private function loadUser(string $identifier, array $attributes): UserInterface
 	{
 		if (!isset($attributes['roles'])) {
-			$user = $this->userProvider->loadUserByIdentifier($identifier);
-
-			if (!$user instanceof UserEntity) {
-				throw new LogicException(
-					sprintf(
-						'User provider must return an instance of "%s", %s given.',
-						UserEntity::class,
-						get_debug_type($user),
-					),
-				);
-			}
-
-			return $user;
+			return $this->userProvider->loadUserByIdentifier($identifier);
+		}
+		if ($identifier === '') {
+			throw new LogicException('User identifier is empty.');
 		}
 
-		return new InMemoryUser($identifier, $attributes['roles'], $attributes['language'] ?? Language::English);
+		return new InMemoryUserEntity($identifier, $attributes['roles']); // deprecated
 	}
 
 	public function onAuthenticationSuccess(Request $request, TokenInterface $token, string $firewallName): ?Response

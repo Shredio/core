@@ -3,7 +3,6 @@
 namespace Shredio\Core\Serializer;
 
 use Shredio\Core\Bridge\Doctrine\EntityManagerRegistry;
-use Shredio\Core\Security\UserContext;
 use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
 
 /**
@@ -14,14 +13,12 @@ abstract class BaseEntityNormalizer extends BaseObjectNormalizer implements Scal
 {
 
 	protected readonly EntityManagerRegistry $managerRegistry;
-	protected readonly UserContext $userContext;
 
 	public function __construct(
 		ObjectNormalizerServices $services,
 	)
 	{
 		$this->managerRegistry = $services->managerRegistry;
-		$this->userContext = $services->userContext;
 	}
 
 	public function supportsScalar(float|bool|int|string $value): bool

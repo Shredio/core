@@ -2,7 +2,6 @@
 
 namespace Shredio\Core\Security;
 
-use Shredio\Core\Intl\Language;
 use Shredio\Core\Security\Token\Token;
 use Symfony\Component\Clock\DatePoint;
 
@@ -29,10 +28,10 @@ final readonly class AuthTokenProvider
 	/**
 	 * @param string[] $roles
 	 */
-	public function createForApi(string|int $id, array $roles, Language $language): Token
+	public function createForApi(string|int $id, array $roles): Token
 	{
 		return $this->tokenProvider->create(
-			['id' => $id, 'roles' => $roles, 'language' => $language->value],
+			['id' => $id, 'roles' => $roles],
 			new DatePoint($this->expiration),
 			['aud' => 'api'],
 		);

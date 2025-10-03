@@ -26,7 +26,6 @@ use Shredio\Core\Bridge\Symfony\Reporter\SymfonyExceptionReporter;
 use Shredio\Core\Bridge\Symfony\Rest\RestLoader;
 use Shredio\Core\Bridge\Symfony\Rest\SymfonyRestOperationsFactory;
 use Shredio\Core\Bridge\Symfony\Security\SymfonyAuthenticator;
-use Shredio\Core\Bridge\Symfony\Security\SymfonyUserContext;
 use Shredio\Core\Bridge\Symfony\Serializer\AccountIdNormalizer;
 use Shredio\Core\Bridge\Symfony\Serializer\KeepObjectNormalizer;
 use Shredio\Core\Bridge\Symfony\Serializer\SymbolNormalizer;
@@ -74,7 +73,6 @@ use Shredio\Core\Rest\RestOperationsFactory;
 use Shredio\Core\Security\AuthTokenProvider;
 use Shredio\Core\Security\PasetoProvider;
 use Shredio\Core\Security\TokenProvider;
-use Shredio\Core\Security\UserContext;
 use Shredio\Core\Serializer\Argument\ObjectNormalizerServices;
 use Shredio\Messenger\Bus\CommandBus;
 use Shredio\Messenger\Bus\DefaultMessengerBusAccessor;
@@ -264,7 +262,6 @@ final class CoreBundle extends AbstractBundle
 			->autowire()
 			->autoconfigure();
 
-		$this->addInterfaceService($services, UserContext::class, SymfonyUserContext::class);
 		$this->addInterfaceService($services, TokenProvider::class, PasetoProvider::class)
 			->arg('$secret', param('env(string:AUTH_PASETO_SECRET)'));
 

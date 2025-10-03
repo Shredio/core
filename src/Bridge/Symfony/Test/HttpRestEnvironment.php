@@ -10,7 +10,6 @@ use Shredio\Core\Rest\Test\FakeRequest;
 use Shredio\Core\Rest\Test\FakeResponse;
 use Shredio\Core\Rest\Test\FakeRestClient;
 use Shredio\Core\Rest\Test\FakeRestClientFactory;
-use Shredio\Core\Security\InMemoryUser;
 use Shredio\Core\Test\Authentication\Actor;
 use Symfony\Bridge\PsrHttpMessage\Factory\PsrHttpFactory;
 use Symfony\Component\BrowserKit\Cookie;
