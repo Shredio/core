@@ -51,19 +51,20 @@ trait HttpRestEnvironment // @phpstan-ignore-line
 		$factory = new FakeRestClientFactory($this, function (FakeRequest $request) use ($client, $urlGenerator, $psrHttpFactory, $testHelper): FakeResponse {
 			$testBench = TestHelper::getTestBench($client->getKernel());
 			$language = null;
+			$server = [];
 
 			if ($actor = $request->actor) {
 				$testHelper->internals->tryFillActor($actor);
 
 				if ($signedActor = $actor->getSignedActor()) {
 //					$testBench->loginUser(new InMemoryUser($signedActor->getId()->toOriginal(), $signedActor->getRoles(), $signedActor->getLanguage()));
-					$testBench->loginUser(new InMemoryUserEntity((string) $signedActor->getId()->toOriginal(), $signedActor->getRoles()));
+//					$testBench->loginUser(new InMemoryUserEntity((string) $signedActor->getId()->toOriginal(), $signedActor->getRoles()));
 					$language = $signedActor->getLanguage()->value;
+					$server['HTTP_TEST_AUTHORIZATION'] = serialize(new InMemoryUserEntity((string) $signedActor->getId()->toOriginal(), $signedActor->getRoles()));
 				}
 			}
 
 			$url = $urlGenerator->generate($request->controllerMetadata->getRouteName($request->endpointMetadata), $request->parameters);
-			$server = [];
 
 			foreach ($request->headers as $name => $values) {
 				$server['HTTP_' . strtoupper(str_replace('-', '_', $name))] = implode(', ', $values);
