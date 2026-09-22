@@ -17,7 +17,7 @@ final class Choice extends Symfony\Choice
 	public string $maxMessage = 'choice.max';
 
 	/**
-	 * @param mixed[]|string $options
+	 * @param mixed[]|string|null $options
 	 * @param mixed[]|null $choices An array of choices (required unless a callback is specified)
 	 * @param callable|string|null $callback Callback method to use instead of the choice option to get the choices
 	 * @param bool|null $multiple Whether to expect the value to be an array of valid choices (defaults to false)
@@ -29,7 +29,7 @@ final class Choice extends Symfony\Choice
 	 * @param class-string<BackedEnum>|null $enumClass
 	 */
 	public function __construct(
-		array|string $options = [],
+		array|string|null $options = null,
 		?array $choices = null,
 		callable|string|null $callback = null,
 		?bool $multiple = null,
