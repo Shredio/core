@@ -312,7 +312,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 
 	private function loadSqlFile(string $script, PlatformFamily $platform): string
 	{
-		return (static function () use ($script, $platform): string { // @phpstan-ignore-line
+		return (static function () use ($script, $platform): string {
 			return require $script;
 		})();
 	}

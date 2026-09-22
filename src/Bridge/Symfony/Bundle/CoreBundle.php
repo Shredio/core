@@ -181,7 +181,7 @@ final class CoreBundle extends AbstractBundle
 
 	public function configure(DefinitionConfigurator $definition): void
 	{
-		$definition->rootNode() // @phpstan-ignore-line
+		$definition->rootNode()
 			->children()
 				->booleanNode('api')->defaultFalse()->end()
 				->arrayNode('extensions')

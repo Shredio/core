@@ -51,6 +51,10 @@ final class DoctrineRepositoryHelperTest extends TestCase
 		Deprecation::enableTrackingDeprecations();
 
 		$configuration = ORMSetup::createAttributeMetadataConfiguration([dirname(__DIR__) . '/entity'], true);
+		if (PHP_VERSION_ID >= 80400) {
+			// Doctrine ORM 3.6+ allows symfony/var-exporter 8, which no longer ships the LazyGhost proxies.
+			$configuration->enableNativeLazyObjects(true);
+		}
 		$connection = DriverManager::getConnection(['driver' => 'pdo_sqlite', 'memory' => true], $configuration);
 		$entityManager = new EntityManager($connection, $configuration);
 		new SchemaTool($entityManager)->createSchema([$entityManager->getClassMetadata(Article::class)]);

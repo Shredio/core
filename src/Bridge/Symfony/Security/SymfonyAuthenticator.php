@@ -119,9 +119,9 @@ final class SymfonyAuthenticator extends AbstractAuthenticator
 
 	private function getTokenInCookies(Request $request): ?string
 	{
-		$value = $request->cookies->get('sid', '');
+		$value = $request->cookies->getString('sid');
 
-		if (is_string($value) && $value !== '') {
+		if ($value !== '') {
 			return $value;
 		}
 

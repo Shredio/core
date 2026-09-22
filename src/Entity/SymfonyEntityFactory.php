@@ -138,10 +138,6 @@ final readonly class SymfonyEntityFactory implements EntityFactory
 			throw new InvalidDataException($exception->getMessage(), $exception);
 		}
 
-		if ($object === null) {
-			throw new BadRequestException('Returned entity is a null.');
-		}
-
 		if (!$object instanceof $className) {
 			throw new InvalidArgumentException(
 				sprintf('Entity must be an instance of %s, %s given.', $className, get_debug_type($object)),
