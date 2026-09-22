@@ -20,6 +20,7 @@ use Shredio\Core\Path\Directories;
 use Shredio\Core\Rest\Operation\EntityOperation;
 use Shredio\Core\Rest\RestOperationBuilder;
 use Shredio\Core\Rest\RestOperations;
+use SortDirection;
 use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -57,7 +58,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 	 * Finds a single entity by a set of criteria.
 	 *
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @param mixed[] $options
 	 */
 	public function findOne(array $criteria, array $orderBy = [], ?int $guardMode = null, array $options = []): ResponseInterface
@@ -336,7 +337,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 	/**
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @return T
 	 */
 	private function getEntityByCriteria(array $criteria, array $orderBy): object
@@ -423,7 +424,7 @@ final readonly class SymfonyRestOperations implements RestOperations
 
 	/**
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @return T|null
 	 */
 	private function findEntityByCriteria(array $criteria, array $orderBy): ?object

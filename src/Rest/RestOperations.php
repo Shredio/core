@@ -3,6 +3,7 @@
 namespace Shredio\Core\Rest;
 
 use Psr\Http\Message\ResponseInterface;
+use SortDirection;
 
 /**
  * @template T of object
@@ -43,7 +44,7 @@ interface RestOperations
 	 * Finds a single entity by a set of criteria. Default guard mode is GuardOnEntity, if guardNamespace is not set then NoGuard.
 	 *
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @param mixed[] $options
 	 */
 	public function findOne(array $criteria, array $orderBy = [], ?int $guardMode = null, array $options = []): ResponseInterface;
@@ -76,7 +77,7 @@ interface RestOperations
 
 	/**
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @return RestOperationBuilder<T>
 	 */
 	public function buildFindOne(array $criteria, array $orderBy = []): RestOperationBuilder;

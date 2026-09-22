@@ -18,6 +18,7 @@ use Shredio\Core\Bridge\Doctrine\Repository\Criteria\CriteriaParser;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseFieldResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabasePairsResult;
 use Shredio\Core\Bridge\Doctrine\Result\DatabaseResult;
+use SortDirection;
 use Symfony\Contracts\Service\ResetInterface;
 
 final class DoctrineRepositoryHelper implements ResetInterface
@@ -44,13 +45,13 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
+	 * @param array<string, SortDirection>|null $orderBy
 	 * @return list<T>
 	 */
 	public function findBy(string $entity, array $criteria, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
 	{
 		/** @var list<T> */
-		return $this->getRepository($entity)->findBy($criteria, $orderBy, $limit, $offset);
+		return $this->getRepository($entity)->findBy($criteria, $this->toRepositoryOrderBy($orderBy), $limit, $offset);
 	}
 
 	/**
@@ -59,7 +60,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param mixed[] $ids
-	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
+	 * @param array<string, SortDirection>|null $orderBy
 	 * @return list<T>
 	 */
 	public function findById(string $entity, array $ids, ?array $orderBy = null, ?int $limit = null, ?int $offset = null): array
@@ -75,13 +76,13 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'>|null $orderBy
+	 * @param array<string, SortDirection>|null $orderBy
 	 * @return T|null
 	 */
 	public function findOneBy(string $entity, array $criteria, ?array $orderBy = null): ?object
 	{
 		/** @var T|null */
-		return $this->getRepository($entity)->findOneBy($criteria, $orderBy);
+		return $this->getRepository($entity)->findOneBy($criteria, $this->toRepositoryOrderBy($orderBy));
 	}
 
 	/**
@@ -120,7 +121,7 @@ final class DoctrineRepositoryHelper implements ResetInterface
 	 * @template T of object
 	 * @param class-string<T> $entity
 	 * @param array<string, mixed> $criteria
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 * @param string[] $select
 	 * @return DatabaseResult<T>
 	 */
@@ -318,13 +319,31 @@ final class DoctrineRepositoryHelper implements ResetInterface
 
 	/**
 	 * @param QueryBuilder $qb
-	 * @param array<string, 'ASC'|'DESC'> $orderBy
+	 * @param array<string, SortDirection> $orderBy
 	 */
 	private function applyOrderBy(QueryBuilder $qb, array $orderBy): void
 	{
 		foreach ($orderBy as $field => $direction) {
 			$qb->addOrderBy(sprintf('e.%s', $field), $direction);
 		}
+	}
+
+	/**
+	 * Doctrine's findBy() and findOneBy() still take the directions as strings, unlike the query builder.
+	 *
+	 * @param array<string, SortDirection>|null $orderBy
+	 * @return array<string, 'ASC'|'DESC'>|null
+	 */
+	private function toRepositoryOrderBy(?array $orderBy): ?array
+	{
+		if ($orderBy === null) {
+			return null;
+		}
+
+		return array_map(
+			static fn (SortDirection $direction): string => $direction === SortDirection::Ascending ? 'ASC' : 'DESC',
+			$orderBy,
+		);
 	}
 
 	/**

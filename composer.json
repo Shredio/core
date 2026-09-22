@@ -6,7 +6,11 @@
 		"php": ">=8.3",
 		"marcj/topsort": "^2.0",
 		"psr/simple-cache": "^3.0",
-		"shredio/rapid-database-operations": "^1.0"
+		"shredio/rapid-database-operations": "^1.0",
+		"symfony/polyfill-php86": "^1.41"
+	},
+	"conflict": {
+		"doctrine/orm": "<3.7"
 	},
 	"autoload": {
 		"psr-4": {
@@ -40,7 +44,7 @@
 		"symfony/psr-http-message-bridge": "^7.2",
 		"runtime/swoole": "^0.4.0",
 		"doctrine/doctrine-bundle": "^2.13",
-		"doctrine/orm": "^3.3",
+		"doctrine/orm": "^3.7",
 		"webchemistry/fixtures": "^2.0",
 		"poliander/cron": "^3.2",
 		"nette/neon": "^3.4",

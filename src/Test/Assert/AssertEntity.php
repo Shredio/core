@@ -9,6 +9,7 @@ use Doctrine\ORM\Mapping\ManyToOneAssociationMapping;
 use Doctrine\ORM\Query;
 use PHPUnit\Framework\Assert;
 use Shredio\Core\Struct\SinglePassIndex;
+use SortDirection;
 
 /**
  * @template T of object
@@ -36,7 +37,7 @@ final readonly class AssertEntity
 		$entity = $this->em->createQueryBuilder()
 			->select('e')
 			->from($this->entity, 'e')
-			->orderBy(sprintf('e.%s', $orderBy), 'DESC')
+			->orderBy(sprintf('e.%s', $orderBy), SortDirection::Descending)
 			->setMaxResults(1)
 			->getQuery()
 			->getSingleResult();
@@ -96,7 +97,7 @@ final readonly class AssertEntity
 		$yield = $this->em->createQueryBuilder()
 			->select($select)
 			->from($this->entity, 'e')
-			->orderBy(sprintf('e.%s', $orderBy), 'DESC')
+			->orderBy(sprintf('e.%s', $orderBy), SortDirection::Descending)
 			->getQuery()
 			->toIterable(hydrationMode: Query::HYDRATE_SCALAR);
 
